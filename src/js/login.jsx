@@ -1,25 +1,3 @@
-var React = require('react');
-var ReactDOM = require('react-dom');
-var Router = require('react-router').Router;
-var Route = require('react-router').Route; 
-var hashHistory  = require('react-router').hashHistory;
-var browserHistory = require('react-router').browserHistory;
-
-var Home = React.createClass({
-
-	render: function() {
-		return (
-			<div>
-				<h1>Auth</h1>
-				<ul>
-				  <li><a href="/">Home</a></li>
-				  <li><a href="login">Login</a></li>
-				</ul>
-			</div>
-		);
-	}
-});
-
 var Login = React.createClass({
 
 	componentDidMount: function() {
@@ -73,7 +51,7 @@ var Login = React.createClass({
 	  FB.api('/me', function(response) {
 	  console.log('Successful login for: ' + response.name);
 	  });
-	  browserHistory.push('/');
+	  this.props.history.push('/newpoll');
 	},
 
 	// This is called with the results from from FB.getLoginStatus().
@@ -120,6 +98,7 @@ var Login = React.createClass({
 	      <ul>
 	        <li><a href="/">Home</a></li>
 	        <li><a href="login">Login</a></li>
+	        <li><a href="newpoll">New Poll ^^^^</a></li>
 	      </ul>
 	  		<div id='social-login-button-facebook'>
 				</div>
@@ -128,10 +107,4 @@ var Login = React.createClass({
   }  
 })
 
-ReactDOM.render((
-  <Router history={browserHistory}>
-    <Route path="/" component={Home}>
-    </Route>  
-      <Route path="login" component={Login} />
-  </Router>
-), document.getElementById('container'))
+module.exports = Login;
