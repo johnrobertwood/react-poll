@@ -43800,9 +43800,14 @@
 
 	var OptionSelector = React.createClass({displayName: "OptionSelector",
 
+		getInitialState: function() {
+			console.log(this.props.items);
+			return {items: this.props.items}
+		},
+
 		handleChange: function(e) {
-			console.log("handlesubmit");
 			console.log(e.target.value);
+			console.log(this.props.items);
 		},
 
 		render: function() {
@@ -43810,7 +43815,7 @@
 		    return React.createElement("select", {key: i, onChange: this.handleChange, defaultValue: "default"}, 
 		    					React.createElement("option", {disabled: true, value: "default"}, " --- "), 
 		    					item.text.map(function(subitem, i) {
-		    						return React.createElement("option", {key: i, id: i, value: subitem.text}, subitem.text)
+		    						return React.createElement("option", {key: i, value: subitem.choice}, subitem.choice)
 		    }, this));
 		  };
 		  var countItem = function(item, i) {
@@ -43844,9 +43849,9 @@
 			e.preventDefault();
 			var parseText = this.state.text.split(' ').join('').split(',');
 			var objects = parseText.map(function(item) {
-				return {text: item, count: 0};
+				return {choice: item, count: 0};
 			});
-			var nextItems = this.state.items.concat([{text: objects, count: 0}]);
+			var nextItems = this.state.items.concat([{text: objects}]);
 			var nextText = '';
 			this.setState({items: nextItems, text: nextText});
 		},

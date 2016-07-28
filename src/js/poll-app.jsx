@@ -5,9 +5,14 @@ var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiK
 
 var OptionSelector = React.createClass({
 
+	getInitialState: function() {
+		console.log(this.props.items);
+		return {items: this.props.items}
+	},
+
 	handleChange: function(e) {
-		console.log("handlesubmit");
 		console.log(e.target.value);
+		console.log(this.props.items);
 	},
 
 	render: function() {
@@ -15,7 +20,7 @@ var OptionSelector = React.createClass({
 	    return <select key={i} onChange={this.handleChange} defaultValue="default">
 	    					<option disabled value="default"> --- </option>
 	    					{item.text.map(function(subitem, i) {
-	    						return <option key={i} id={i} value={subitem.text}>{subitem.text}</option>
+	    						return <option key={i} value={subitem.choice}>{subitem.choice}</option>
 	    }, this)}</select>;
 	  };
 	  var countItem = function(item, i) {
@@ -49,9 +54,9 @@ var PollApp = React.createClass({
 		e.preventDefault();
 		var parseText = this.state.text.split(' ').join('').split(',');
 		var objects = parseText.map(function(item) {
-			return {text: item, count: 0};
+			return {choice: item, count: 0};
 		});
-		var nextItems = this.state.items.concat([{text: objects, count: 0}]);
+		var nextItems = this.state.items.concat([{text: objects}]);
 		var nextText = '';
 		this.setState({items: nextItems, text: nextText});
 	},
