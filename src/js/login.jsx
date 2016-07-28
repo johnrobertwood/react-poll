@@ -53,7 +53,7 @@ var Login = React.createClass({
 	  FB.api('/me', function(response) {
 	  console.log('Successful login for: ' + response.name);
 	  });
-	  this.props.history.push('/newpoll');
+	  this.props.history.push('/listpolls');
 	},
 
 	// This is called with the results from from FB.getLoginStatus().
@@ -100,7 +100,7 @@ var Login = React.createClass({
 	      <ul>
 	        <li><a href="/">Home</a></li>
 	        <li><a href="login">Login</a></li>
-	        <li><a href="newpoll">New Poll ^^^^</a></li>
+	        <li><a href="newpoll">New Poll</a></li>
 	      </ul>
 	  		<div id='social-login-button-facebook'>
 				</div>

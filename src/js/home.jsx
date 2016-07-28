@@ -9,7 +9,7 @@ var Home = React.createClass({
 				<ul>
 				  <li><a href="/">Home</a></li>
 				  <li><a href="login">Login</a></li>
-				  <li><a href="newpoll">New Poll??</a></li>
+				  <li><a href="pollapp">Poll App</a></li>
 				</ul>
 			</div>
 		);
