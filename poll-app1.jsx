@@ -6,52 +6,37 @@ var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiK
 
 var OptionSelector = React.createClass({
 
-	transformData: function(data) {
-		var datasets = [];
-		var labels = data[0].text.map(function(item) {
-			return item[0];
-		})
-		var dataArr = data[0].text.map(function(item) {
-				return item[1];
-			});
-		datasets.push({data: dataArr});
-		this.setState({data: {labels: labels, datasets: datasets}});
-		return {labels: labels, datasets: datasets};
-	},
-
 	getInitialState: function() {
-		return {items: this.props.items, data: {}};
+		console.log(this.props.items);
+		var data = {
+			labels: ["A", "B"],
+			datasets: [{data: [1, 2]}]
+		}
+		return {items: this.props.items, data: data}
 	},
 
 	handleChange: function(e) {
-		console.log(e.target.getAttribute('data-index'));
-		var pollIndex = e.target.getAttribute('data-index');
-		this.props.items[pollIndex].text.forEach(function(item) {
+		console.log(e.target.value);
+		this.props.items[0].text.forEach(function(item) {
 			if (item[0] === e.target.value) {
 				item[1] += 1;
 			}
 		})
-		this.transformData(this.props.items);
-		console.log(this.props.items);
+		this.setState({items: this.props.items});
+		console.log(this.state.items)
 	},
 
 	render: function() {
 	  var createItem = function(item, i) {
-	    return <select key={i} data-index={i} onChange={this.handleChange} defaultValue="default">
+	    return <select key={i} onChange={this.handleChange} defaultValue="default">
 	    					<option disabled value="default"> --- </option>
 	    					{item.text.map(function(subitem, i) {
 	    						return <option key={i} value={subitem[0]}>{subitem[0]}</option>
-	    }, this)}</select>
+	    }, this)}</select>;
 	  };
-	  var createList = function(item, i) {
-	  	return <ul key={i}>{item.text.map(function(subitem, i) {
-	  		return <li key={i}>{subitem[0]}--{subitem[1]}</li>
-	  	}, this)}</ul>
-	  };
-
 	  return 	<div>
 	  					<div>{this.props.items.map(createItem, this)}</div>
-	  					<div>{this.props.items.map(createList, this)}</div>
+	  					<div><BarChart data={this.state.data} width="600" height="250"/></div>
   					</div>
 	}
 
