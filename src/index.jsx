@@ -7,7 +7,6 @@ var browserHistory = require('react-router').browserHistory;
 var Login = require('./js/login.jsx');
 var Home = require('./js/home.jsx');
 var PollApp = require('./js/poll-app.jsx');
-var ListPolls = require('./js/list-polls.jsx');
 
 
 
@@ -17,7 +16,6 @@ ReactDOM.render((
     </Route>  
       <Route path="login" component={Login} />
       <Route path="pollapp" component={PollApp} />
-      <Route path="listpolls" component={ListPolls} />
   </Router>
 ), document.getElementById('container'))
 

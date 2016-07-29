@@ -53,7 +53,6 @@
 	var Login = __webpack_require__(448);
 	var Home = __webpack_require__(449);
 	var PollApp = __webpack_require__(450);
-	var ListPolls = __webpack_require__(462);
 
 
 
@@ -62,8 +61,7 @@
 	    React.createElement(Route, {path: "/", component: Home}
 	    ), 
 	      React.createElement(Route, {path: "login", component: Login}), 
-	      React.createElement(Route, {path: "pollapp", component: PollApp}), 
-	      React.createElement(Route, {path: "listpolls", component: ListPolls})
+	      React.createElement(Route, {path: "pollapp", component: PollApp})
 	  )
 	), document.getElementById('container'))
 
@@ -43794,63 +43792,10 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
-	var $ = __webpack_require__(451);
-	var BarChart = __webpack_require__(452).Bar;
-
+	var OptionSelector = __webpack_require__(451);
 	var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
-
-	var OptionSelector = React.createClass({displayName: "OptionSelector",
-
-		transformData: function(data) {
-			var datasets = [];
-			var labels = data[0].text.map(function(item) {
-				return item[0];
-			})
-			var dataArr = data[0].text.map(function(item) {
-					return item[1];
-				});
-			datasets.push({data: dataArr});
-			this.setState({data: {labels: labels, datasets: datasets}});
-			return {labels: labels, datasets: datasets};
-		},
-
-		getInitialState: function() {
-			return {items: this.props.items, data: {}};
-		},
-
-		handleChange: function(e) {
-			console.log(e.target.getAttribute('data-index'));
-			var pollIndex = e.target.getAttribute('data-index');
-			this.props.items[pollIndex].text.forEach(function(item) {
-				if (item[0] === e.target.value) {
-					item[1] += 1;
-				}
-			})
-			this.transformData(this.props.items);
-			console.log(this.props.items);
-		},
-
-		render: function() {
-		  var createItem = function(item, i) {
-		    return React.createElement("select", {key: i, "data-index": i, onChange: this.handleChange, defaultValue: "default"}, 
-		    					React.createElement("option", {disabled: true, value: "default"}, " --- "), 
-		    					item.text.map(function(subitem, i) {
-		    						return React.createElement("option", {key: i, value: subitem[0]}, subitem[0])
-		    }, this))
-		  };
-		  var createList = function(item, i) {
-		  	return React.createElement("ul", {key: i}, item.text.map(function(subitem, i) {
-		  		return React.createElement("li", {key: i}, subitem[0], "--", subitem[1])
-		  	}, this))
-		  };
-
-		  return 	React.createElement("div", null, 
-		  					React.createElement("div", null, this.props.items.map(createItem, this)), 
-		  					React.createElement("div", null, this.props.items.map(createList, this))
-	  					)
-		}
-
-	})
+	var BarChart = __webpack_require__(453).Bar;
+	var $ = __webpack_require__(452);
 
 	var PollApp = React.createClass({displayName: "PollApp",
 
@@ -43858,9 +43803,43 @@
 			return {items: [], text: ''}
 		},
 
+		componentDidMount: function() {
+			var polls = this.getData();
+			this.setState({items: polls});
+		},
+
 		componentWillUnmount: function() {
 		  this.serverRequest.abort();
 	  },
+
+		getData: function() {
+			this.serverRequest = $.ajax({
+			  url: url, 
+			  dataType: 'json',
+			  cache: false,
+			  success: function(data) {
+			    this.setState({items: data});
+			  }.bind(this),
+			  error: function(xhr, status, err) {
+			    console.error(this.props.url, status, err.toString());
+			  }.bind(this)
+			});
+		},
+
+		post: function(url, data) {
+			$.ajax({
+				url: url,
+				type: "POST",
+				data: JSON.stringify(data),
+				contentType: "application/json",
+		    success: function(data) {
+		    	console.log(data);
+		    }.bind(this),
+		    error: function(xhr, status, err) {
+		      console.error(this.props.url, status, err.toString());
+		    }.bind(this)
+			})	
+		},
 
 		handleInputOptions: function(e) {
 			this.setState({text: e.target.value});
@@ -43875,6 +43854,7 @@
 			var nextItems = this.state.items.concat([{text: choices}]);
 			var nextText = '';
 			this.setState({items: nextItems, text: nextText});
+			this.post(url, [{text: choices}]);
 		},
 
 	  render: function() {
@@ -43895,6 +43875,106 @@
 
 /***/ },
 /* 451 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(1);
+	var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
+	var $ = __webpack_require__(452);
+
+	var OptionSelector = React.createClass({displayName: "OptionSelector",
+
+		transformData: function(data) {
+			var datasets = [];
+			var labels = data[0].text.map(function(item) {
+				return item[0];
+			})
+			var dataArr = data[0].text.map(function(item) {
+					return item[1];
+				});
+			datasets.push({data: dataArr});
+			this.setState({data: {labels: labels, datasets: datasets}});
+			return {labels: labels, datasets: datasets};
+		},
+
+		getInitialState: function() {
+			return {items: this.props.items, data: {}};
+		},
+
+		getData: function() {
+			this.serverRequest = $.ajax({
+			  url: url, 
+			  dataType: 'json',
+			  cache: false,
+			  success: function(data) {
+			    this.setState({items: data});
+			  }.bind(this),
+			  error: function(xhr, status, err) {
+			    console.error(this.props.url, status, err.toString());
+			  }.bind(this)
+			});
+		},
+
+		post: function(url, data) {
+			console.log(data);
+			$.ajax({
+				url: url,
+				type: "POST",
+				data: JSON.stringify(data),
+				contentType: "application/json",
+		    success: function(data) {
+		    	console.log(data);
+		    }.bind(this),
+		    error: function(xhr, status, err) {
+		      console.error(this.props.url, status, err.toString());
+		    }.bind(this)
+			})	
+		},
+
+		handleChange: function(e) {
+			console.log(e.target.getAttribute('data-index'));
+			var pollIndex = e.target.getAttribute('data-index');
+			var updatedPoll;
+			this.props.items[pollIndex].text.forEach(function(item) {
+				if (item[0] === e.target.value) {
+					item[1] += 1;
+				}
+			})
+			this.transformData(this.props.items);
+			updatedPoll = this.props.items[pollIndex];
+			this.post(url, updatedPoll);
+			console.log(updatedPoll);
+		},
+
+		render: function() {
+		  var createItem = function(item, i) {
+		    return React.createElement("div", {key: i}, 
+		    					React.createElement("select", {key: i, "data-index": i, onChange: this.handleChange, defaultValue: "default"}, 
+		    						React.createElement("option", {disabled: true, value: "default"}, " --- "), 
+		    							item.text.map(function(subitem, i) {
+		    								return React.createElement("option", {key: i, value: subitem[0]}, subitem[0])}, this)
+		    					), 
+		    						item.text.map(function(subitem, i) {
+		    						  	return React.createElement("li", {key: i}, subitem[0], "--", subitem[1])}, this)
+		    				)
+
+		  };
+		  var createList = function(item, i) {
+		  	return React.createElement("ul", {key: i}, item.text.map(function(subitem, i) {
+		  		return React.createElement("li", {key: i}, subitem[0], "--", subitem[1])
+		  	}, this))
+		  };
+
+		  return 	React.createElement("div", null, 
+		  					React.createElement("div", null, this.props.items.map(createItem, this))
+	  					)
+		}
+
+	})
+
+	module.exports = OptionSelector;
+
+/***/ },
+/* 452 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*eslint-disable no-unused-vars*/
@@ -53974,31 +54054,31 @@
 
 
 /***/ },
-/* 452 */
+/* 453 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = {
-	  Bar: __webpack_require__(453),
-	  Doughnut: __webpack_require__(457),
-	  Line: __webpack_require__(458),
-	  Pie: __webpack_require__(459),
-	  PolarArea: __webpack_require__(460),
-	  Radar: __webpack_require__(461),
-	  createClass: __webpack_require__(454).createClass
+	  Bar: __webpack_require__(454),
+	  Doughnut: __webpack_require__(458),
+	  Line: __webpack_require__(459),
+	  Pie: __webpack_require__(460),
+	  PolarArea: __webpack_require__(461),
+	  Radar: __webpack_require__(462),
+	  createClass: __webpack_require__(455).createClass
 	};
 
 
 /***/ },
-/* 453 */
+/* 454 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(454);
+	var vars = __webpack_require__(455);
 
 	module.exports = vars.createClass('Bar', ['getBarsAtEvent']);
 
 
 /***/ },
-/* 454 */
+/* 455 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
@@ -54061,7 +54141,7 @@
 	    };
 
 	    classData.initializeChart = function(nextProps) {
-	      var Chart = __webpack_require__(455);
+	      var Chart = __webpack_require__(456);
 	      var el = ReactDOM.findDOMNode(this);
 	      var ctx = el.getContext("2d");
 	      var chart = new Chart(ctx)[chartType](nextProps.data, nextProps.options || {});
@@ -54152,7 +54232,7 @@
 
 
 /***/ },
-/* 455 */
+/* 456 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -54466,7 +54546,7 @@
 				//Method for warning of errors
 				if (window.console && typeof window.console.warn === "function") console.warn(str);
 			},
-			amd = helpers.amd = ("function" === 'function' && __webpack_require__(456)),
+			amd = helpers.amd = ("function" === 'function' && __webpack_require__(457)),
 			//-- Math methods
 			isNumber = helpers.isNumber = function(n){
 				return !isNaN(parseFloat(n)) && isFinite(n);
@@ -57894,7 +57974,7 @@
 
 
 /***/ },
-/* 456 */
+/* 457 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -57902,136 +57982,49 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 457 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var vars = __webpack_require__(454);
-
-	module.exports = vars.createClass('Doughnut', ['getSegmentsAtEvent']);
-
-
-/***/ },
 /* 458 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(454);
+	var vars = __webpack_require__(455);
 
-	module.exports = vars.createClass('Line', ['getPointsAtEvent']);
+	module.exports = vars.createClass('Doughnut', ['getSegmentsAtEvent']);
 
 
 /***/ },
 /* 459 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(454);
+	var vars = __webpack_require__(455);
 
-	module.exports = vars.createClass('Pie', ['getSegmentsAtEvent']);
+	module.exports = vars.createClass('Line', ['getPointsAtEvent']);
 
 
 /***/ },
 /* 460 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(454);
+	var vars = __webpack_require__(455);
 
-	module.exports = vars.createClass('PolarArea', ['getSegmentsAtEvent']);
+	module.exports = vars.createClass('Pie', ['getSegmentsAtEvent']);
 
 
 /***/ },
 /* 461 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(454);
+	var vars = __webpack_require__(455);
 
-	module.exports = vars.createClass('Radar', ['getPointsAtEvent']);
+	module.exports = vars.createClass('PolarArea', ['getSegmentsAtEvent']);
 
 
 /***/ },
 /* 462 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var React = __webpack_require__(1);
-	var PollApp = __webpack_require__(450);
-	var ReactBootstrap = __webpack_require__(233);
-	var VoteSelector = __webpack_require__(463);
-	var $ = __webpack_require__(451);
+	var vars = __webpack_require__(455);
 
-	var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
+	module.exports = vars.createClass('Radar', ['getPointsAtEvent']);
 
-	var ListPolls = React.createClass({displayName: "ListPolls",
-
-		getInitialState: function() {
-
-			return {polls: [{name: '',options: []}]}
-		},
-
-		handlePollSubmit: function() {
-			console.log('handle poll submit')
-			this.getData();
-		},
-
-		getData: function() {
-			this.serverRequest = $.ajax({
-			  url: url, 
-			  dataType: 'json',
-			  cache: false,
-			  success: function(data) {
-			    this.setState({polls: data});
-			  }.bind(this),
-			  error: function(xhr, status, err) {
-			    console.error(this.props.url, status, err.toString());
-			  }.bind(this)
-			});
-		},
-
-		componentDidMount: function() {
-			var polls = this.getData();
-		},
-
-		componentWillUnmount: function() {
-		    this.serverRequest.abort();
-	  },
-
-	  render: function() {
-	  	var rows = [];
-	  	var index = 0;
-			this.state.polls.forEach(function(poll) {
-				console.log(poll);
-	      rows.push(React.createElement(VoteSelector, {data: poll, key: index}))
-	      index++;
-	    }, this);
-	    return (
-	  		React.createElement("div", null, 
-	  			React.createElement("div", null, rows), 
-	  			React.createElement(PollApp, {onPollSubmit: this.handlePollSubmit})
-	  		)
-	    );
-	  } 
-	});
-
-	module.exports = ListPolls;
-
-/***/ },
-/* 463 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(1);
-
-	var VoteSelector = React.createClass({displayName: "VoteSelector",
-
-		  render: function() {
-		  	return (
-		  		React.createElement("div", null, 
-		  		  React.createElement("select", null, 
-		  		    React.createElement("option", {value: this.props.data.options[0]}, this.props.data.options[0]), 
-		  		    React.createElement("option", {value: this.props.data.options[1]}, this.props.data.options[1])
-				    )
-			    )
-				)
-		  }
-	})
-
-	module.exports = VoteSelector;
 
 /***/ }
 /******/ ]);

@@ -5,7 +5,7 @@ var mongoose = require('mongoose');
 var Poll = require('./src/models/votingapp')
 var bodyParser = require('body-parser');
 
-mongoose.connect('mongodb://'+process.env.USER+':'+process.env.MONGO_PW+'@ds023245.mlab.com:23245/votingapp');
+// mongoose.connect('mongodb://'+process.env.USER+':'+process.env.MONGO_PW+'@ds023245.mlab.com:23245/votingapp');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));

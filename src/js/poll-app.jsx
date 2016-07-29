@@ -1,61 +1,8 @@
 var React = require('react');
-var $ = require('jquery');
-var BarChart = require("react-chartjs").Bar;
-
+var OptionSelector = require('./option-selector.jsx');
 var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
-
-var OptionSelector = React.createClass({
-
-	transformData: function(data) {
-		var datasets = [];
-		var labels = data[0].text.map(function(item) {
-			return item[0];
-		})
-		var dataArr = data[0].text.map(function(item) {
-				return item[1];
-			});
-		datasets.push({data: dataArr});
-		this.setState({data: {labels: labels, datasets: datasets}});
-		return {labels: labels, datasets: datasets};
-	},
-
-	getInitialState: function() {
-		return {items: this.props.items, data: {}};
-	},
-
-	handleChange: function(e) {
-		console.log(e.target.getAttribute('data-index'));
-		var pollIndex = e.target.getAttribute('data-index');
-		this.props.items[pollIndex].text.forEach(function(item) {
-			if (item[0] === e.target.value) {
-				item[1] += 1;
-			}
-		})
-		this.transformData(this.props.items);
-		console.log(this.props.items);
-	},
-
-	render: function() {
-	  var createItem = function(item, i) {
-	    return <select key={i} data-index={i} onChange={this.handleChange} defaultValue="default">
-	    					<option disabled value="default"> --- </option>
-	    					{item.text.map(function(subitem, i) {
-	    						return <option key={i} value={subitem[0]}>{subitem[0]}</option>
-	    }, this)}</select>
-	  };
-	  var createList = function(item, i) {
-	  	return <ul key={i}>{item.text.map(function(subitem, i) {
-	  		return <li key={i}>{subitem[0]}--{subitem[1]}</li>
-	  	}, this)}</ul>
-	  };
-
-	  return 	<div>
-	  					<div>{this.props.items.map(createItem, this)}</div>
-	  					<div>{this.props.items.map(createList, this)}</div>
-  					</div>
-	}
-
-})
+var BarChart = require("react-chartjs").Bar;
+var $ = require('jquery');
 
 var PollApp = React.createClass({
 
@@ -63,9 +10,43 @@ var PollApp = React.createClass({
 		return {items: [], text: ''}
 	},
 
+	componentDidMount: function() {
+		var polls = this.getData();
+		this.setState({items: polls});
+	},
+
 	componentWillUnmount: function() {
 	  this.serverRequest.abort();
   },
+
+	getData: function() {
+		this.serverRequest = $.ajax({
+		  url: url, 
+		  dataType: 'json',
+		  cache: false,
+		  success: function(data) {
+		    this.setState({items: data});
+		  }.bind(this),
+		  error: function(xhr, status, err) {
+		    console.error(this.props.url, status, err.toString());
+		  }.bind(this)
+		});
+	},
+
+	post: function(url, data) {
+		$.ajax({
+			url: url,
+			type: "POST",
+			data: JSON.stringify(data),
+			contentType: "application/json",
+	    success: function(data) {
+	    	console.log(data);
+	    }.bind(this),
+	    error: function(xhr, status, err) {
+	      console.error(this.props.url, status, err.toString());
+	    }.bind(this)
+		})	
+	},
 
 	handleInputOptions: function(e) {
 		this.setState({text: e.target.value});
@@ -80,6 +61,7 @@ var PollApp = React.createClass({
 		var nextItems = this.state.items.concat([{text: choices}]);
 		var nextText = '';
 		this.setState({items: nextItems, text: nextText});
+		this.post(url, [{text: choices}]);
 	},
 
   render: function() {

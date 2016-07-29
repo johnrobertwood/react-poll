@@ -1,3 +1,6 @@
+var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
+var $ = require('jquery');
+
 post: function(url, data) {
 	$.ajax({
 		url: url,
@@ -11,4 +14,5 @@ post: function(url, data) {
       console.error(this.props.url, status, err.toString());
     }.bind(this)
 	})	
-},
+}
+
