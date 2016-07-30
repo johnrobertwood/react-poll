@@ -43802,7 +43802,7 @@
 	var PollApp = React.createClass({displayName: "PollApp",
 
 		getInitialState: function() {
-			return {items: [], text: '', chartData: []}
+			return {text: '', chartData: []}
 		},
 
 		componentDidMount: function() {
@@ -43856,12 +43856,9 @@
 				return 0;
 			})
 
-			console.log(initialData);
-
-			var nextItems = this.state.items.concat([{text: choices}]);
 			var nextText = '';
 			var nextChart = this.state.chartData.concat([{labels:choices, datasets:[{data:initialData}]}])
-			this.setState({items: nextItems, text: nextText, chartData: nextChart});
+			this.setState({text: nextText, chartData: nextChart});
 			this.post(url, [{labels:choices, datasets:[{data:initialData}]}]);
 
 		},
@@ -43871,7 +43868,7 @@
 	    return (
 	  		React.createElement("div", null, 
 	  			React.createElement("form", {onSubmit: this.handleSubmit}, 
-	  				React.createElement("label", {htmlFor: "options"}, "Options"), React.createElement("br", null), 
+	  				React.createElement("label", {htmlFor: "options"}, "Options!!!"), React.createElement("br", null), 
 	  				React.createElement("textarea", {rows: "4", value: this.state.text, onChange: this.handleInputOptions}), React.createElement("br", null), 
 	  				React.createElement("button", null, " Add Poll ")
 	  			), 
@@ -43890,30 +43887,15 @@
 	var React = __webpack_require__(1);
 	var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
 	var $ = __webpack_require__(452);
-	var SampleBarChart = __webpack_require__(453);
+	var PollBarChart = __webpack_require__(453);
+	var PollPieChart = __webpack_require__(464);
 
 	var chartData = [{labels: [],datasets: [{data: [],}]}];
 
 	var OptionSelector = React.createClass({displayName: "OptionSelector",
 
-		transformData: function(data) {
-			var bigData = [];
-			dataArr = data.map(function(item) {
-				var labels = item.labels.map(function(item) {
-					return item[0];
-				})
-				var dataArr = item.labels.map(function(item) {
-					return item[1];
-				})
-				var datasets = [{data: dataArr}];
-
-				bigData.push({labels: labels, datasets: datasets})
-			})
-			this.setState({items: data, chartData: bigData});
-		},
-
 		getInitialState: function() {
-			return {items: this.props.items, chartData: this.props.chartData};
+			return {chartData: chartData};
 		},
 
 		componentDidMount: function() {
@@ -43965,11 +43947,13 @@
 				}
 			}
 
+			this.setState({chartData: this.props.chartData});
 			updatedPoll = this.props.chartData[pollIndex];
 			this.post(url, updatedPoll);
 		},
 
 		render: function() {
+			console.log(this.props.chartData);
 		  var createItem = function(item, i) {
 		    return React.createElement("div", {key: i}, 
 		    					React.createElement("select", {key: i, "data-index": i, onChange: this.handleChange, defaultValue: "default"}, 
@@ -43979,7 +43963,7 @@
 		    					), 
 		    						item.datasets[0].data.map(function(subitem, i) {
 		    						  	return React.createElement("li", {key: i}, subitem)}, this), 
-	    							React.createElement("div", null, React.createElement(SampleBarChart, {data: this.state.chartData[i]}))
+	    							React.createElement("div", null, React.createElement(PollBarChart, {data: this.props.chartData[i]}))
 		    				)
 		  };
 
@@ -54079,14 +54063,14 @@
 	var React = __webpack_require__(1);
 	var BarChart = __webpack_require__(454).Bar;
 
-	var SampleBarChart = React.createClass({displayName: "SampleBarChart",
+	var PollBarChart = React.createClass({displayName: "PollBarChart",
 
 	  render: function() {
 	    return React.createElement(BarChart, {data: this.props.data, width: "300", height: "125"})
 	  }
 	});
 
-	module.exports = SampleBarChart;
+	module.exports = PollBarChart;
 
 /***/ },
 /* 454 */
@@ -58060,6 +58044,22 @@
 
 	module.exports = vars.createClass('Radar', ['getPointsAtEvent']);
 
+
+/***/ },
+/* 464 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(1);
+	var PieChart = __webpack_require__(454).Pie;
+
+	var PollPieChart = React.createClass({displayName: "PollPieChart",
+
+	  render: function() {
+	    return React.createElement(PieChart, {data: this.props.data, width: "300", height: "125"})
+	  }
+	});
+
+	module.exports = PollPieChart;
 
 /***/ }
 /******/ ]);

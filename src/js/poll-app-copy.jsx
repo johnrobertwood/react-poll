@@ -93,10 +93,10 @@ var PollApp = React.createClass({
 			  				<ControlLabel>Options</ControlLabel>
 			  				<FormControl componentClass="textarea" rows="4" value={this.state.text} onChange={this.handleInputOptions}/>
 							</FormGroup>
-		  				<Button type="submit">Add Poll</Button>
+		  				<Button>Add Poll</Button>
 		  			</form>
   				</Col>
-					<Col xs={12} md={4} mdOffset={2}>
+					<Col xs={12} md={4}>
 						<OptionSelector chartData={this.state.chartData} />
 					</Col>
 				</Row>

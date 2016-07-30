@@ -12,7 +12,7 @@ var PollApp = require('./js/poll-app.jsx');
 
 ReactDOM.render((
   <Router history={browserHistory}>
-    <Route path="/" component={Home}>
+    <Route path="/" component={PollApp}>
     </Route>  
       <Route path="login" component={Login} />
       <Route path="pollapp" component={PollApp} />

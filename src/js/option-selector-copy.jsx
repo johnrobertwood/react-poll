@@ -75,22 +75,29 @@ var OptionSelector = React.createClass({
 		var ControlLabel = ReactBootstrap.ControlLabel;
 		var FormControl = ReactBootstrap.FormControl;
 	  var createItem = function(item, i) {
-	    return <div key={i}>
-	    				<FormGroup controlId="formControlsSelect">
-	    					<ControlLabel>Vote</ControlLabel>
+	    return <Row key={i}>
+		    				<Col xs={12} md={2}>
+
+		    				<FormGroup controlId="formControlsSelect">
+		    				<ControlLabel>Vote</ControlLabel>
 		    				<FormControl componentClass="select" key={i} data-index={i} onChange={this.handleChange} defaultValue="default">
 		    					<option disabled value="default"> --- </option>
 		    						{item.labels.map(function(subitem, i) {
 		    							return <option key={i} value={subitem[0]}>{subitem[0]}</option>}, this)}
 		    				</FormControl>
-	    				</FormGroup>
-								<PollBarChart data={this.props.chartData[i]} />
-								<hr />
-							</div>
+		    				</FormGroup>
+
+	    					</Col>
+	    					<Col xs={12} md={6}>
+	    						{item.datasets[0].data.map(function(subitem, i) {
+	    						  	return <li key={i}>{subitem}</li>}, this)}
+    							<div><PollBarChart data={this.props.chartData[i]} /></div>
+  							</Col>
+	    				</Row>
 	  };
 
 	  return 	<div>
-							{this.props.chartData.map(createItem, this)}
+	  					<Grid>{this.props.chartData.map(createItem, this)}</Grid>
   					</div>
 	}
 
