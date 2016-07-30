@@ -43794,15 +43794,15 @@
 	var React = __webpack_require__(1);
 	var OptionSelector = __webpack_require__(451);
 	var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
-	var SampleBarChart = __webpack_require__(453);
 	var $ = __webpack_require__(452);
 
-	var chartData = [{labels: [],datasets: [{data: [],}]}];
+	// var chartData = [{labels: [],datasets: [{data: [],}]}];
+
 
 	var PollApp = React.createClass({displayName: "PollApp",
 
 		getInitialState: function() {
-			return {items: [], text: '', chartData: chartData}
+			return {items: [], text: '', chartData: []}
 		},
 
 		componentDidMount: function() {
@@ -43813,29 +43813,13 @@
 		  this.serverRequest.abort();
 	  },
 
-	  transformData: function(data) {
-	  	var bigData = [];
-	  	dataArr = data.map(function(item) {
-	  		var labels = item.text.map(function(item) {
-	  			return item[0];
-	  		})
-	  		var dataArr = item.text.map(function(item) {
-	  			return item[1];
-	  		})
-	  		var datasets = [{data: dataArr}];
-
-	  		bigData.push({labels: labels, datasets: datasets})
-	  	})
-	  	this.setState({items: data, chartData: bigData});
-	  },
-
 		getData: function() {
 			this.serverRequest = $.ajax({
 			  url: url, 
 			  dataType: 'json',
 			  cache: false,
 			  success: function(data) {
-			    this.transformData(data);
+			    this.setState({chartData: data});
 			  }.bind(this),
 			  error: function(xhr, status, err) {
 			    console.error(this.props.url, status, err.toString());
@@ -43850,7 +43834,7 @@
 				data: JSON.stringify(data),
 				contentType: "application/json",
 		    success: function(data) {
-		    	console.log("Data posted");
+		    	this.getData();
 		    }.bind(this),
 		    error: function(xhr, status, err) {
 		      console.error(this.props.url, status, err.toString());
@@ -43866,13 +43850,22 @@
 			e.preventDefault();
 			var parseText = this.state.text.split(' ').join('').split(',');
 			var choices = parseText.map(function(item) {
-				return [item, 0];
+				return [item];
 			});
+			var initialData = choices.map(function(item) {
+				return 0;
+			})
+
+			console.log(initialData);
+
 			var nextItems = this.state.items.concat([{text: choices}]);
 			var nextText = '';
-			this.setState({items: nextItems, text: nextText});
-			this.post(url, [{text: choices}]);
+			var nextChart = this.state.chartData.concat([{labels:choices, datasets:[{data:initialData}]}])
+			this.setState({items: nextItems, text: nextText, chartData: nextChart});
+			this.post(url, [{labels:choices, datasets:[{data:initialData}]}]);
+
 		},
+
 
 	  render: function() {
 	    return (
@@ -43882,8 +43875,7 @@
 	  				React.createElement("textarea", {rows: "4", value: this.state.text, onChange: this.handleInputOptions}), React.createElement("br", null), 
 	  				React.createElement("button", null, " Add Poll ")
 	  			), 
-	  			React.createElement(OptionSelector, {items: this.state.items})
-
+	  			React.createElement(OptionSelector, {chartData: this.state.chartData})
 	  		)
 	    );
 	  } 
@@ -43907,10 +43899,10 @@
 		transformData: function(data) {
 			var bigData = [];
 			dataArr = data.map(function(item) {
-				var labels = item.text.map(function(item) {
+				var labels = item.labels.map(function(item) {
 					return item[0];
 				})
-				var dataArr = item.text.map(function(item) {
+				var dataArr = item.labels.map(function(item) {
 					return item[1];
 				})
 				var datasets = [{data: dataArr}];
@@ -43921,7 +43913,7 @@
 		},
 
 		getInitialState: function() {
-			return {items: this.props.items, data: {}, chartData: chartData};
+			return {items: this.props.items, chartData: this.props.chartData};
 		},
 
 		componentDidMount: function() {
@@ -43938,7 +43930,7 @@
 			  dataType: 'json',
 			  cache: false,
 			  success: function(data) {
-			    this.transformData(data);
+			    this.setState({chartData: data});
 			  }.bind(this),
 			  error: function(xhr, status, err) {
 			    console.error(this.props.url, status, err.toString());
@@ -43964,33 +43956,35 @@
 		handleChange: function(e) {
 			var pollIndex = e.target.getAttribute('data-index');
 			var updatedPoll;
-			this.props.items[pollIndex].text.forEach(function(item) {
-				if (item[0] === e.target.value) {
-					item[1] += 1;
+			var dataArr = this.props.chartData[pollIndex].labels;
+			var length = this.props.chartData[pollIndex].labels.length;
+
+			for (var i = 0; i < length; i++) {
+				if (dataArr[i][0] === e.target.value) {
+					this.props.chartData[pollIndex].datasets[0].data[i] += 1;
 				}
-			})
-			this.transformData(this.props.items);
-			updatedPoll = this.props.items[pollIndex];
+			}
+
+			updatedPoll = this.props.chartData[pollIndex];
 			this.post(url, updatedPoll);
 		},
 
 		render: function() {
-			console.log(this.state.chartData);
 		  var createItem = function(item, i) {
 		    return React.createElement("div", {key: i}, 
 		    					React.createElement("select", {key: i, "data-index": i, onChange: this.handleChange, defaultValue: "default"}, 
 		    						React.createElement("option", {disabled: true, value: "default"}, " --- "), 
-		    							item.text.map(function(subitem, i) {
+		    							item.labels.map(function(subitem, i) {
 		    								return React.createElement("option", {key: i, value: subitem[0]}, subitem[0])}, this)
 		    					), 
-		    						item.text.map(function(subitem, i) {
-		    						  	return React.createElement("li", {key: i}, subitem[0], "--", subitem[1])}, this), 
-		    						React.createElement("div", null, React.createElement(SampleBarChart, {data: this.state.chartData[i]}))
+		    						item.datasets[0].data.map(function(subitem, i) {
+		    						  	return React.createElement("li", {key: i}, subitem)}, this), 
+	    							React.createElement("div", null, React.createElement(SampleBarChart, {data: this.state.chartData[i]}))
 		    				)
 		  };
 
 		  return 	React.createElement("div", null, 
-		  					React.createElement("div", null, this.props.items.map(createItem, this))
+		  					React.createElement("div", null, this.props.chartData.map(createItem, this))
 	  					)
 		}
 
@@ -54085,21 +54079,9 @@
 	var React = __webpack_require__(1);
 	var BarChart = __webpack_require__(454).Bar;
 
-	// var SampleBarChart = React.createClass({
-
-	//   render: function() {
-	//   	console.log(this.props.data);
-	//   	var createChart = function(item, i) {
-	// 	    return <BarChart key={i} data={item} width="300" height="125"/>
-	//   	}
-
-	//     return <div>{this.props.data.map(createChart, this)}</div>
-	//   }
-	// });
 	var SampleBarChart = React.createClass({displayName: "SampleBarChart",
 
 	  render: function() {
-	  	console.log(this.props.data);
 	    return React.createElement(BarChart, {data: this.props.data, width: "300", height: "125"})
 	  }
 	});

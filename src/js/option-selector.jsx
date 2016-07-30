@@ -10,10 +10,10 @@ var OptionSelector = React.createClass({
 	transformData: function(data) {
 		var bigData = [];
 		dataArr = data.map(function(item) {
-			var labels = item.text.map(function(item) {
+			var labels = item.labels.map(function(item) {
 				return item[0];
 			})
-			var dataArr = item.text.map(function(item) {
+			var dataArr = item.labels.map(function(item) {
 				return item[1];
 			})
 			var datasets = [{data: dataArr}];
@@ -24,7 +24,7 @@ var OptionSelector = React.createClass({
 	},
 
 	getInitialState: function() {
-		return {items: this.props.items, data: {}, chartData: chartData};
+		return {items: this.props.items, chartData: this.props.chartData};
 	},
 
 	componentDidMount: function() {
@@ -41,7 +41,7 @@ var OptionSelector = React.createClass({
 		  dataType: 'json',
 		  cache: false,
 		  success: function(data) {
-		    this.transformData(data);
+		    this.setState({chartData: data});
 		  }.bind(this),
 		  error: function(xhr, status, err) {
 		    console.error(this.props.url, status, err.toString());
@@ -67,33 +67,35 @@ var OptionSelector = React.createClass({
 	handleChange: function(e) {
 		var pollIndex = e.target.getAttribute('data-index');
 		var updatedPoll;
-		this.props.items[pollIndex].text.forEach(function(item) {
-			if (item[0] === e.target.value) {
-				item[1] += 1;
+		var dataArr = this.props.chartData[pollIndex].labels;
+		var length = this.props.chartData[pollIndex].labels.length;
+
+		for (var i = 0; i < length; i++) {
+			if (dataArr[i][0] === e.target.value) {
+				this.props.chartData[pollIndex].datasets[0].data[i] += 1;
 			}
-		})
-		this.transformData(this.props.items);
-		updatedPoll = this.props.items[pollIndex];
+		}
+
+		updatedPoll = this.props.chartData[pollIndex];
 		this.post(url, updatedPoll);
 	},
 
 	render: function() {
-		console.log(this.state.chartData);
 	  var createItem = function(item, i) {
 	    return <div key={i}>
 	    					<select key={i} data-index={i} onChange={this.handleChange} defaultValue="default">
 	    						<option disabled value="default"> --- </option>
-	    							{item.text.map(function(subitem, i) {
+	    							{item.labels.map(function(subitem, i) {
 	    								return <option key={i} value={subitem[0]}>{subitem[0]}</option>}, this)}
 	    					</select>
-	    						{item.text.map(function(subitem, i) {
-	    						  	return <li key={i}>{subitem[0]}--{subitem[1]}</li>}, this)}
-	    						<div><SampleBarChart data={this.state.chartData[i]} /></div>
+	    						{item.datasets[0].data.map(function(subitem, i) {
+	    						  	return <li key={i}>{subitem}</li>}, this)}
+    							<div><SampleBarChart data={this.state.chartData[i]} /></div>
 	    				</div>
 	  };
 
 	  return 	<div>
-	  					<div>{this.props.items.map(createItem, this)}</div>
+	  					<div>{this.props.chartData.map(createItem, this)}</div>
   					</div>
 	}
 
