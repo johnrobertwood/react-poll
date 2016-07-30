@@ -43819,11 +43819,9 @@
 	  		var labels = item.text.map(function(item) {
 	  			return item[0];
 	  		})
-
 	  		var dataArr = item.text.map(function(item) {
 	  			return item[1];
 	  		})
-
 	  		var datasets = [{data: dataArr}];
 
 	  		bigData.push({labels: labels, datasets: datasets})
@@ -43884,8 +43882,8 @@
 	  				React.createElement("textarea", {rows: "4", value: this.state.text, onChange: this.handleInputOptions}), React.createElement("br", null), 
 	  				React.createElement("button", null, " Add Poll ")
 	  			), 
-	  			React.createElement(OptionSelector, {items: this.state.items}), 
-	  			React.createElement(SampleBarChart, {data: this.state.chartData})
+	  			React.createElement(OptionSelector, {items: this.state.items})
+
 	  		)
 	    );
 	  } 
@@ -43900,22 +43898,21 @@
 	var React = __webpack_require__(1);
 	var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
 	var $ = __webpack_require__(452);
+	var SampleBarChart = __webpack_require__(453);
+
+	var chartData = [{labels: [],datasets: [{data: [],}]}];
 
 	var OptionSelector = React.createClass({displayName: "OptionSelector",
 
-
 		transformData: function(data) {
 			var bigData = [];
-			console.log(data);
 			dataArr = data.map(function(item) {
 				var labels = item.text.map(function(item) {
 					return item[0];
 				})
-
 				var dataArr = item.text.map(function(item) {
 					return item[1];
 				})
-
 				var datasets = [{data: dataArr}];
 
 				bigData.push({labels: labels, datasets: datasets})
@@ -43924,8 +43921,16 @@
 		},
 
 		getInitialState: function() {
-			return {items: this.props.items, data: {}};
+			return {items: this.props.items, data: {}, chartData: chartData};
 		},
+
+		componentDidMount: function() {
+			this.getData();
+		},
+
+		componentWillUnmount: function() {
+		  this.serverRequest.abort();
+	  },
 
 		getData: function() {
 			this.serverRequest = $.ajax({
@@ -43933,7 +43938,6 @@
 			  dataType: 'json',
 			  cache: false,
 			  success: function(data) {
-			  	console.log(data)
 			    this.transformData(data);
 			  }.bind(this),
 			  error: function(xhr, status, err) {
@@ -43971,6 +43975,7 @@
 		},
 
 		render: function() {
+			console.log(this.state.chartData);
 		  var createItem = function(item, i) {
 		    return React.createElement("div", {key: i}, 
 		    					React.createElement("select", {key: i, "data-index": i, onChange: this.handleChange, defaultValue: "default"}, 
@@ -43979,7 +43984,8 @@
 		    								return React.createElement("option", {key: i, value: subitem[0]}, subitem[0])}, this)
 		    					), 
 		    						item.text.map(function(subitem, i) {
-		    						  	return React.createElement("li", {key: i}, subitem[0], "--", subitem[1])}, this)
+		    						  	return React.createElement("li", {key: i}, subitem[0], "--", subitem[1])}, this), 
+		    						React.createElement("div", null, React.createElement(SampleBarChart, {data: this.state.chartData[i]}))
 		    				)
 		  };
 
@@ -54079,15 +54085,22 @@
 	var React = __webpack_require__(1);
 	var BarChart = __webpack_require__(454).Bar;
 
+	// var SampleBarChart = React.createClass({
+
+	//   render: function() {
+	//   	console.log(this.props.data);
+	//   	var createChart = function(item, i) {
+	// 	    return <BarChart key={i} data={item} width="300" height="125"/>
+	//   	}
+
+	//     return <div>{this.props.data.map(createChart, this)}</div>
+	//   }
+	// });
 	var SampleBarChart = React.createClass({displayName: "SampleBarChart",
 
 	  render: function() {
 	  	console.log(this.props.data);
-	  	var createChart = function(item, i) {
-		    return React.createElement(BarChart, {key: i, data: item, width: "300", height: "125"})
-	  	}
-
-	    return React.createElement("div", null, this.props.data.map(createChart, this))
+	    return React.createElement(BarChart, {data: this.props.data, width: "300", height: "125"})
 	  }
 	});
 

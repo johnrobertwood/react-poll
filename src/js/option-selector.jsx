@@ -1,22 +1,21 @@
 var React = require('react');
 var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
 var $ = require('jquery');
+var SampleBarChart = require('./bar-chart.jsx');
+
+var chartData = [{labels: [],datasets: [{data: [],}]}];
 
 var OptionSelector = React.createClass({
 
-
 	transformData: function(data) {
 		var bigData = [];
-		console.log(data);
 		dataArr = data.map(function(item) {
 			var labels = item.text.map(function(item) {
 				return item[0];
 			})
-
 			var dataArr = item.text.map(function(item) {
 				return item[1];
 			})
-
 			var datasets = [{data: dataArr}];
 
 			bigData.push({labels: labels, datasets: datasets})
@@ -25,8 +24,16 @@ var OptionSelector = React.createClass({
 	},
 
 	getInitialState: function() {
-		return {items: this.props.items, data: {}};
+		return {items: this.props.items, data: {}, chartData: chartData};
 	},
+
+	componentDidMount: function() {
+		this.getData();
+	},
+
+	componentWillUnmount: function() {
+	  this.serverRequest.abort();
+  },
 
 	getData: function() {
 		this.serverRequest = $.ajax({
@@ -34,7 +41,6 @@ var OptionSelector = React.createClass({
 		  dataType: 'json',
 		  cache: false,
 		  success: function(data) {
-		  	console.log(data)
 		    this.transformData(data);
 		  }.bind(this),
 		  error: function(xhr, status, err) {
@@ -72,6 +78,7 @@ var OptionSelector = React.createClass({
 	},
 
 	render: function() {
+		console.log(this.state.chartData);
 	  var createItem = function(item, i) {
 	    return <div key={i}>
 	    					<select key={i} data-index={i} onChange={this.handleChange} defaultValue="default">
@@ -81,6 +88,7 @@ var OptionSelector = React.createClass({
 	    					</select>
 	    						{item.text.map(function(subitem, i) {
 	    						  	return <li key={i}>{subitem[0]}--{subitem[1]}</li>}, this)}
+	    						<div><SampleBarChart data={this.state.chartData[i]} /></div>
 	    				</div>
 	  };
 

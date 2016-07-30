@@ -26,11 +26,9 @@ var PollApp = React.createClass({
   		var labels = item.text.map(function(item) {
   			return item[0];
   		})
-
   		var dataArr = item.text.map(function(item) {
   			return item[1];
   		})
-
   		var datasets = [{data: dataArr}];
 
   		bigData.push({labels: labels, datasets: datasets})
@@ -92,7 +90,7 @@ var PollApp = React.createClass({
   				<button> Add Poll </button>
   			</form>
   			<OptionSelector items={this.state.items} />
-  			<SampleBarChart data={this.state.chartData} />
+
   		</div>
     );
   } 
