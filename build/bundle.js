@@ -58,7 +58,7 @@
 
 	ReactDOM.render((
 	  React.createElement(Router, {history: browserHistory}, 
-	    React.createElement(Route, {path: "/", component: Home}
+	    React.createElement(Route, {path: "/", component: PollApp}
 	    ), 
 	      React.createElement(Route, {path: "login", component: Login}), 
 	      React.createElement(Route, {path: "pollapp", component: PollApp})
@@ -43774,7 +43774,7 @@
 		render: function() {
 			return (
 				React.createElement("div", null, 
-					React.createElement("h1", null, "Auth"), 
+					React.createElement("h1", null, "Auth!"), 
 					React.createElement("ul", null, 
 					  React.createElement("li", null, React.createElement("a", {href: "/"}, "Home")), 
 					  React.createElement("li", null, React.createElement("a", {href: "login"}, "Login")), 
@@ -43795,14 +43795,14 @@
 	var OptionSelector = __webpack_require__(451);
 	var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
 	var $ = __webpack_require__(452);
+	var ReactBootstrap = __webpack_require__(233);
 
 	// var chartData = [{labels: [],datasets: [{data: [],}]}];
-
 
 	var PollApp = React.createClass({displayName: "PollApp",
 
 		getInitialState: function() {
-			return {text: '', chartData: []}
+			return {text: '', title: '', chartData: []}
 		},
 
 		componentDidMount: function() {
@@ -43842,37 +43842,58 @@
 			})	
 		},
 
+		handleInputTitle: function(e) {
+			this.setState({title: e.target.value});
+		},
+
 		handleInputOptions: function(e) {
 			this.setState({text: e.target.value});
 		},
 
 		handleSubmit: function(e) {
 			e.preventDefault();
+			var title = this.state.title;
 			var parseText = this.state.text.split(' ').join('').split(',');
-			var choices = parseText.map(function(item) {
-				return [item];
-			});
-			var initialData = choices.map(function(item) {
-				return 0;
-			})
-
+			var choices = parseText.map(function(item) {return [item];});
+			var initialData = choices.map(function(item) {return 0;});
 			var nextText = '';
-			var nextChart = this.state.chartData.concat([{labels:choices, datasets:[{data:initialData}]}])
-			this.setState({text: nextText, chartData: nextChart});
-			this.post(url, [{labels:choices, datasets:[{data:initialData}]}]);
+			var nextTitle = '';
+			var nextChart = this.state.chartData.concat([{tite: title, labels:choices, datasets:[{data:initialData}]}])
+			this.setState({text: nextText, title: nextTitle, chartData: nextChart});
+			this.post(url, [{title: title, labels:choices, datasets:[{data:initialData}]}]);
 
 		},
 
 
 	  render: function() {
+	  	var FieldGroup = ReactBootstrap.FieldGroup;
+	  	var FormGroup = ReactBootstrap.FormGroup;
+	  	var FormControl = ReactBootstrap.FormControl;
+	  	var ControlLabel = ReactBootstrap.ControlLabel;
+	  	var Button = ReactBootstrap.Button;
+	  	var Row = ReactBootstrap.Row;
+	  	var Col = ReactBootstrap.Col;
+	  	var Grid = ReactBootstrap.Grid;
 	    return (
-	  		React.createElement("div", null, 
-	  			React.createElement("form", {onSubmit: this.handleSubmit}, 
-	  				React.createElement("label", {htmlFor: "options"}, "Options!!!"), React.createElement("br", null), 
-	  				React.createElement("textarea", {rows: "4", value: this.state.text, onChange: this.handleInputOptions}), React.createElement("br", null), 
-	  				React.createElement("button", null, " Add Poll ")
-	  			), 
-	  			React.createElement(OptionSelector, {chartData: this.state.chartData})
+	  		React.createElement(Grid, null, 
+	  			React.createElement(Row, null, 
+						React.createElement(Col, {xs: 12, md: 3}, 
+			  			React.createElement("form", {onSubmit: this.handleSubmit}, 
+				  			React.createElement(FormGroup, {controlId: "formControlsText"}, 
+				  				React.createElement(ControlLabel, null, "Poll Title"), 
+				  				React.createElement(FormControl, {type: "text", onChange: this.handleInputTitle, value: this.state.title, required: true})
+			  				), 
+								React.createElement(FormGroup, {controlId: "formControlsTextarea"}, 
+				  				React.createElement(ControlLabel, null, "Choices (separated by commas)"), 
+				  				React.createElement(FormControl, {componentClass: "textarea", rows: "4", value: this.state.text, onChange: this.handleInputOptions, required: true})
+								), 
+			  				React.createElement(Button, {type: "submit"}, "Add Poll")
+			  			)
+	  				), 
+						React.createElement(Col, {xs: 12, md: 4, mdOffset: 2}, 
+							React.createElement(OptionSelector, {chartData: this.state.chartData})
+						)
+					)
 	  		)
 	    );
 	  } 
@@ -43889,6 +43910,7 @@
 	var $ = __webpack_require__(452);
 	var PollBarChart = __webpack_require__(453);
 	var PollPieChart = __webpack_require__(464);
+	var ReactBootstrap = __webpack_require__(233);
 
 	var chartData = [{labels: [],datasets: [{data: [],}]}];
 
@@ -43953,22 +43975,30 @@
 		},
 
 		render: function() {
-			console.log(this.props.chartData);
+			var Grid = ReactBootstrap.Grid;
+			var Row = ReactBootstrap.Row;
+			var Col = ReactBootstrap.Col;
+			var FormGroup = ReactBootstrap.FormGroup;
+			var ControlLabel = ReactBootstrap.ControlLabel;
+			var FormControl = ReactBootstrap.FormControl;
 		  var createItem = function(item, i) {
 		    return React.createElement("div", {key: i}, 
-		    					React.createElement("select", {key: i, "data-index": i, onChange: this.handleChange, defaultValue: "default"}, 
-		    						React.createElement("option", {disabled: true, value: "default"}, " --- "), 
-		    							item.labels.map(function(subitem, i) {
-		    								return React.createElement("option", {key: i, value: subitem[0]}, subitem[0])}, this)
-		    					), 
-		    						item.datasets[0].data.map(function(subitem, i) {
-		    						  	return React.createElement("li", {key: i}, subitem)}, this), 
-	    							React.createElement("div", null, React.createElement(PollBarChart, {data: this.props.chartData[i]}))
-		    				)
+		    				React.createElement("h3", null, item.title), 
+		    				React.createElement(FormGroup, {controlId: "formControlsSelect"}, 
+		    					React.createElement(ControlLabel, null, "Vote"), 
+			    				React.createElement(FormControl, {componentClass: "select", key: i, "data-index": i, onChange: this.handleChange, defaultValue: "default"}, 
+			    					React.createElement("option", {disabled: true, value: "default"}, " --- "), 
+			    						item.labels.map(function(subitem, i) {
+			    							return React.createElement("option", {key: i, value: subitem[0]}, subitem[0])}, this)
+			    				)
+		    				), 
+									React.createElement(PollBarChart, {data: this.props.chartData[i]}), 
+									React.createElement("hr", null)
+								)
 		  };
 
 		  return 	React.createElement("div", null, 
-		  					React.createElement("div", null, this.props.chartData.map(createItem, this))
+								this.props.chartData.map(createItem, this)
 	  					)
 		}
 

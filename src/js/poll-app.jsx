@@ -9,7 +9,7 @@ var ReactBootstrap = require('react-bootstrap');
 var PollApp = React.createClass({
 
 	getInitialState: function() {
-		return {text: '', chartData: []}
+		return {text: '', title: '', chartData: []}
 	},
 
 	componentDidMount: function() {
@@ -49,24 +49,25 @@ var PollApp = React.createClass({
 		})	
 	},
 
+	handleInputTitle: function(e) {
+		this.setState({title: e.target.value});
+	},
+
 	handleInputOptions: function(e) {
 		this.setState({text: e.target.value});
 	},
 
 	handleSubmit: function(e) {
 		e.preventDefault();
+		var title = this.state.title;
 		var parseText = this.state.text.split(' ').join('').split(',');
-		var choices = parseText.map(function(item) {
-			return [item];
-		});
-		var initialData = choices.map(function(item) {
-			return 0;
-		})
-
+		var choices = parseText.map(function(item) {return [item];});
+		var initialData = choices.map(function(item) {return 0;});
 		var nextText = '';
-		var nextChart = this.state.chartData.concat([{labels:choices, datasets:[{data:initialData}]}])
-		this.setState({text: nextText, chartData: nextChart});
-		this.post(url, [{labels:choices, datasets:[{data:initialData}]}]);
+		var nextTitle = '';
+		var nextChart = this.state.chartData.concat([{tite: title, labels:choices, datasets:[{data:initialData}]}])
+		this.setState({text: nextText, title: nextTitle, chartData: nextChart});
+		this.post(url, [{title: title, labels:choices, datasets:[{data:initialData}]}]);
 
 	},
 
@@ -87,11 +88,11 @@ var PollApp = React.createClass({
 		  			<form onSubmit={this.handleSubmit}>
 			  			<FormGroup controlId="formControlsText">
 			  				<ControlLabel>Poll Title</ControlLabel>
-			  				<FormControl type="text" onChange={this.onChange} />
+			  				<FormControl type="text" onChange={this.handleInputTitle} value={this.state.title} required />
 		  				</FormGroup>
 							<FormGroup controlId="formControlsTextarea">
-			  				<ControlLabel>Options</ControlLabel>
-			  				<FormControl componentClass="textarea" rows="4" value={this.state.text} onChange={this.handleInputOptions}/>
+			  				<ControlLabel>Choices (separated by commas)</ControlLabel>
+			  				<FormControl componentClass="textarea" rows="4" value={this.state.text} onChange={this.handleInputOptions} required/>
 							</FormGroup>
 		  				<Button type="submit">Add Poll</Button>
 		  			</form>

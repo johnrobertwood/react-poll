@@ -76,6 +76,7 @@ var OptionSelector = React.createClass({
 		var FormControl = ReactBootstrap.FormControl;
 	  var createItem = function(item, i) {
 	    return <div key={i}>
+	    				<h3>{item.title}</h3>
 	    				<FormGroup controlId="formControlsSelect">
 	    					<ControlLabel>Vote</ControlLabel>
 		    				<FormControl componentClass="select" key={i} data-index={i} onChange={this.handleChange} defaultValue="default">
