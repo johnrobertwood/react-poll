@@ -1,22 +1,41 @@
 var React = require('react');
 var OptionSelector = require('./option-selector.jsx');
 var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
-var BarChart = require("react-chartjs").Bar;
+var SampleBarChart = require('./bar-chart.jsx');
 var $ = require('jquery');
+
+var chartData = [{labels: [],datasets: [{data: [],}]}];
 
 var PollApp = React.createClass({
 
 	getInitialState: function() {
-		return {items: [], text: ''}
+		return {items: [], text: '', chartData: chartData}
 	},
 
 	componentDidMount: function() {
-		var polls = this.getData();
-		this.setState({items: polls});
+		this.getData();
 	},
 
 	componentWillUnmount: function() {
 	  this.serverRequest.abort();
+  },
+
+  transformData: function(data) {
+  	var bigData = [];
+  	dataArr = data.map(function(item) {
+  		var labels = item.text.map(function(item) {
+  			return item[0];
+  		})
+
+  		var dataArr = item.text.map(function(item) {
+  			return item[1];
+  		})
+
+  		var datasets = [{data: dataArr}];
+
+  		bigData.push({labels: labels, datasets: datasets})
+  	})
+  	this.setState({items: data, chartData: bigData});
   },
 
 	getData: function() {
@@ -25,7 +44,7 @@ var PollApp = React.createClass({
 		  dataType: 'json',
 		  cache: false,
 		  success: function(data) {
-		    this.setState({items: data});
+		    this.transformData(data);
 		  }.bind(this),
 		  error: function(xhr, status, err) {
 		    console.error(this.props.url, status, err.toString());
@@ -40,7 +59,7 @@ var PollApp = React.createClass({
 			data: JSON.stringify(data),
 			contentType: "application/json",
 	    success: function(data) {
-	    	console.log(data);
+	    	console.log("Data posted");
 	    }.bind(this),
 	    error: function(xhr, status, err) {
 	      console.error(this.props.url, status, err.toString());
@@ -73,6 +92,7 @@ var PollApp = React.createClass({
   				<button> Add Poll </button>
   			</form>
   			<OptionSelector items={this.state.items} />
+  			<SampleBarChart data={this.state.chartData} />
   		</div>
     );
   } 

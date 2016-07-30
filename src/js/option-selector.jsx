@@ -4,17 +4,24 @@ var $ = require('jquery');
 
 var OptionSelector = React.createClass({
 
+
 	transformData: function(data) {
-		var datasets = [];
-		var labels = data[0].text.map(function(item) {
-			return item[0];
-		})
-		var dataArr = data[0].text.map(function(item) {
+		var bigData = [];
+		console.log(data);
+		dataArr = data.map(function(item) {
+			var labels = item.text.map(function(item) {
+				return item[0];
+			})
+
+			var dataArr = item.text.map(function(item) {
 				return item[1];
-			});
-		datasets.push({data: dataArr});
-		this.setState({data: {labels: labels, datasets: datasets}});
-		return {labels: labels, datasets: datasets};
+			})
+
+			var datasets = [{data: dataArr}];
+
+			bigData.push({labels: labels, datasets: datasets})
+		})
+		this.setState({items: data, chartData: bigData});
 	},
 
 	getInitialState: function() {
@@ -27,7 +34,8 @@ var OptionSelector = React.createClass({
 		  dataType: 'json',
 		  cache: false,
 		  success: function(data) {
-		    this.setState({items: data});
+		  	console.log(data)
+		    this.transformData(data);
 		  }.bind(this),
 		  error: function(xhr, status, err) {
 		    console.error(this.props.url, status, err.toString());
@@ -36,14 +44,13 @@ var OptionSelector = React.createClass({
 	},
 
 	post: function(url, data) {
-		console.log(data);
 		$.ajax({
 			url: url,
 			type: "POST",
 			data: JSON.stringify(data),
 			contentType: "application/json",
 	    success: function(data) {
-	    	console.log(data);
+	    	this.getData();
 	    }.bind(this),
 	    error: function(xhr, status, err) {
 	      console.error(this.props.url, status, err.toString());
@@ -52,7 +59,6 @@ var OptionSelector = React.createClass({
 	},
 
 	handleChange: function(e) {
-		console.log(e.target.getAttribute('data-index'));
 		var pollIndex = e.target.getAttribute('data-index');
 		var updatedPoll;
 		this.props.items[pollIndex].text.forEach(function(item) {
@@ -63,7 +69,6 @@ var OptionSelector = React.createClass({
 		this.transformData(this.props.items);
 		updatedPoll = this.props.items[pollIndex];
 		this.post(url, updatedPoll);
-		console.log(updatedPoll);
 	},
 
 	render: function() {
@@ -77,12 +82,6 @@ var OptionSelector = React.createClass({
 	    						{item.text.map(function(subitem, i) {
 	    						  	return <li key={i}>{subitem[0]}--{subitem[1]}</li>}, this)}
 	    				</div>
-
-	  };
-	  var createList = function(item, i) {
-	  	return <ul key={i}>{item.text.map(function(subitem, i) {
-	  		return <li key={i}>{subitem[0]}--{subitem[1]}</li>
-	  	}, this)}</ul>
 	  };
 
 	  return 	<div>

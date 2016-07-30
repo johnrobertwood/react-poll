@@ -43774,7 +43774,7 @@
 		render: function() {
 			return (
 				React.createElement("div", null, 
-					React.createElement("h1", null, "Auth?"), 
+					React.createElement("h1", null, "Auth"), 
 					React.createElement("ul", null, 
 					  React.createElement("li", null, React.createElement("a", {href: "/"}, "Home")), 
 					  React.createElement("li", null, React.createElement("a", {href: "login"}, "Login")), 
@@ -43794,22 +43794,41 @@
 	var React = __webpack_require__(1);
 	var OptionSelector = __webpack_require__(451);
 	var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
-	var BarChart = __webpack_require__(453).Bar;
+	var SampleBarChart = __webpack_require__(453);
 	var $ = __webpack_require__(452);
+
+	var chartData = [{labels: [],datasets: [{data: [],}]}];
 
 	var PollApp = React.createClass({displayName: "PollApp",
 
 		getInitialState: function() {
-			return {items: [], text: ''}
+			return {items: [], text: '', chartData: chartData}
 		},
 
 		componentDidMount: function() {
-			var polls = this.getData();
-			this.setState({items: polls});
+			this.getData();
 		},
 
 		componentWillUnmount: function() {
 		  this.serverRequest.abort();
+	  },
+
+	  transformData: function(data) {
+	  	var bigData = [];
+	  	dataArr = data.map(function(item) {
+	  		var labels = item.text.map(function(item) {
+	  			return item[0];
+	  		})
+
+	  		var dataArr = item.text.map(function(item) {
+	  			return item[1];
+	  		})
+
+	  		var datasets = [{data: dataArr}];
+
+	  		bigData.push({labels: labels, datasets: datasets})
+	  	})
+	  	this.setState({items: data, chartData: bigData});
 	  },
 
 		getData: function() {
@@ -43818,7 +43837,7 @@
 			  dataType: 'json',
 			  cache: false,
 			  success: function(data) {
-			    this.setState({items: data});
+			    this.transformData(data);
 			  }.bind(this),
 			  error: function(xhr, status, err) {
 			    console.error(this.props.url, status, err.toString());
@@ -43833,7 +43852,7 @@
 				data: JSON.stringify(data),
 				contentType: "application/json",
 		    success: function(data) {
-		    	console.log(data);
+		    	console.log("Data posted");
 		    }.bind(this),
 		    error: function(xhr, status, err) {
 		      console.error(this.props.url, status, err.toString());
@@ -43865,7 +43884,8 @@
 	  				React.createElement("textarea", {rows: "4", value: this.state.text, onChange: this.handleInputOptions}), React.createElement("br", null), 
 	  				React.createElement("button", null, " Add Poll ")
 	  			), 
-	  			React.createElement(OptionSelector, {items: this.state.items})
+	  			React.createElement(OptionSelector, {items: this.state.items}), 
+	  			React.createElement(SampleBarChart, {data: this.state.chartData})
 	  		)
 	    );
 	  } 
@@ -43883,17 +43903,24 @@
 
 	var OptionSelector = React.createClass({displayName: "OptionSelector",
 
+
 		transformData: function(data) {
-			var datasets = [];
-			var labels = data[0].text.map(function(item) {
-				return item[0];
-			})
-			var dataArr = data[0].text.map(function(item) {
+			var bigData = [];
+			console.log(data);
+			dataArr = data.map(function(item) {
+				var labels = item.text.map(function(item) {
+					return item[0];
+				})
+
+				var dataArr = item.text.map(function(item) {
 					return item[1];
-				});
-			datasets.push({data: dataArr});
-			this.setState({data: {labels: labels, datasets: datasets}});
-			return {labels: labels, datasets: datasets};
+				})
+
+				var datasets = [{data: dataArr}];
+
+				bigData.push({labels: labels, datasets: datasets})
+			})
+			this.setState({items: data, chartData: bigData});
 		},
 
 		getInitialState: function() {
@@ -43906,7 +43933,8 @@
 			  dataType: 'json',
 			  cache: false,
 			  success: function(data) {
-			    this.setState({items: data});
+			  	console.log(data)
+			    this.transformData(data);
 			  }.bind(this),
 			  error: function(xhr, status, err) {
 			    console.error(this.props.url, status, err.toString());
@@ -43915,14 +43943,13 @@
 		},
 
 		post: function(url, data) {
-			console.log(data);
 			$.ajax({
 				url: url,
 				type: "POST",
 				data: JSON.stringify(data),
 				contentType: "application/json",
 		    success: function(data) {
-		    	console.log(data);
+		    	this.getData();
 		    }.bind(this),
 		    error: function(xhr, status, err) {
 		      console.error(this.props.url, status, err.toString());
@@ -43931,7 +43958,6 @@
 		},
 
 		handleChange: function(e) {
-			console.log(e.target.getAttribute('data-index'));
 			var pollIndex = e.target.getAttribute('data-index');
 			var updatedPoll;
 			this.props.items[pollIndex].text.forEach(function(item) {
@@ -43942,7 +43968,6 @@
 			this.transformData(this.props.items);
 			updatedPoll = this.props.items[pollIndex];
 			this.post(url, updatedPoll);
-			console.log(updatedPoll);
 		},
 
 		render: function() {
@@ -43956,12 +43981,6 @@
 		    						item.text.map(function(subitem, i) {
 		    						  	return React.createElement("li", {key: i}, subitem[0], "--", subitem[1])}, this)
 		    				)
-
-		  };
-		  var createList = function(item, i) {
-		  	return React.createElement("ul", {key: i}, item.text.map(function(subitem, i) {
-		  		return React.createElement("li", {key: i}, subitem[0], "--", subitem[1])
-		  	}, this))
 		  };
 
 		  return 	React.createElement("div", null, 
@@ -54057,28 +54076,49 @@
 /* 453 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = {
-	  Bar: __webpack_require__(454),
-	  Doughnut: __webpack_require__(458),
-	  Line: __webpack_require__(459),
-	  Pie: __webpack_require__(460),
-	  PolarArea: __webpack_require__(461),
-	  Radar: __webpack_require__(462),
-	  createClass: __webpack_require__(455).createClass
-	};
+	var React = __webpack_require__(1);
+	var BarChart = __webpack_require__(454).Bar;
 
+	var SampleBarChart = React.createClass({displayName: "SampleBarChart",
+
+	  render: function() {
+	  	console.log(this.props.data);
+	  	var createChart = function(item, i) {
+		    return React.createElement(BarChart, {key: i, data: item, width: "300", height: "125"})
+	  	}
+
+	    return React.createElement("div", null, this.props.data.map(createChart, this))
+	  }
+	});
+
+	module.exports = SampleBarChart;
 
 /***/ },
 /* 454 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(455);
+	module.exports = {
+	  Bar: __webpack_require__(455),
+	  Doughnut: __webpack_require__(459),
+	  Line: __webpack_require__(460),
+	  Pie: __webpack_require__(461),
+	  PolarArea: __webpack_require__(462),
+	  Radar: __webpack_require__(463),
+	  createClass: __webpack_require__(456).createClass
+	};
+
+
+/***/ },
+/* 455 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var vars = __webpack_require__(456);
 
 	module.exports = vars.createClass('Bar', ['getBarsAtEvent']);
 
 
 /***/ },
-/* 455 */
+/* 456 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
@@ -54141,7 +54181,7 @@
 	    };
 
 	    classData.initializeChart = function(nextProps) {
-	      var Chart = __webpack_require__(456);
+	      var Chart = __webpack_require__(457);
 	      var el = ReactDOM.findDOMNode(this);
 	      var ctx = el.getContext("2d");
 	      var chart = new Chart(ctx)[chartType](nextProps.data, nextProps.options || {});
@@ -54232,7 +54272,7 @@
 
 
 /***/ },
-/* 456 */
+/* 457 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -54546,7 +54586,7 @@
 				//Method for warning of errors
 				if (window.console && typeof window.console.warn === "function") console.warn(str);
 			},
-			amd = helpers.amd = ("function" === 'function' && __webpack_require__(457)),
+			amd = helpers.amd = ("function" === 'function' && __webpack_require__(458)),
 			//-- Math methods
 			isNumber = helpers.isNumber = function(n){
 				return !isNaN(parseFloat(n)) && isFinite(n);
@@ -57974,7 +58014,7 @@
 
 
 /***/ },
-/* 457 */
+/* 458 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -57982,46 +58022,46 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 458 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var vars = __webpack_require__(455);
-
-	module.exports = vars.createClass('Doughnut', ['getSegmentsAtEvent']);
-
-
-/***/ },
 /* 459 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(455);
+	var vars = __webpack_require__(456);
 
-	module.exports = vars.createClass('Line', ['getPointsAtEvent']);
+	module.exports = vars.createClass('Doughnut', ['getSegmentsAtEvent']);
 
 
 /***/ },
 /* 460 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(455);
+	var vars = __webpack_require__(456);
 
-	module.exports = vars.createClass('Pie', ['getSegmentsAtEvent']);
+	module.exports = vars.createClass('Line', ['getPointsAtEvent']);
 
 
 /***/ },
 /* 461 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(455);
+	var vars = __webpack_require__(456);
 
-	module.exports = vars.createClass('PolarArea', ['getSegmentsAtEvent']);
+	module.exports = vars.createClass('Pie', ['getSegmentsAtEvent']);
 
 
 /***/ },
 /* 462 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(455);
+	var vars = __webpack_require__(456);
+
+	module.exports = vars.createClass('PolarArea', ['getSegmentsAtEvent']);
+
+
+/***/ },
+/* 463 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var vars = __webpack_require__(456);
 
 	module.exports = vars.createClass('Radar', ['getPointsAtEvent']);
 
