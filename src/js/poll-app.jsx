@@ -1,6 +1,7 @@
 var React = require('react');
 var OptionSelector = require('./option-selector.jsx');
 var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
+// var url = 'http://localhost:27017/test/'
 var $ = require('jquery');
 var ReactBootstrap = require('react-bootstrap');
 var Home = require('./home.jsx');
@@ -9,12 +10,16 @@ var Home = require('./home.jsx');
 
 var PollApp = React.createClass({
 
+	mixins: [ReactFireMixin],
+
 	getInitialState: function() {
 		return {text: '', title: '', chartData: [], loggedIn: true}
 	},
 
 	componentWillMount: function() {
 		this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
+		var ref = new Firebase("https://react-poll-f4f47.firebaseio.com/items");
+		this.bindAsArray(ref, "items");
 	},
 
 	componentDidMount: function() {
@@ -58,6 +63,7 @@ var PollApp = React.createClass({
 		$.ajax({
 			url: url,
 			type: "DELETE",
+			headers: { 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE' },
 			data: JSON.stringify(data),
 			contentType: "application/json",
 	    success: function(data) {

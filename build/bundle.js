@@ -43975,6 +43975,7 @@
 	var React = __webpack_require__(1);
 	var OptionSelector = __webpack_require__(453);
 	var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
+	// var url = 'http://localhost:27017/test/'
 	var $ = __webpack_require__(454);
 	var ReactBootstrap = __webpack_require__(238);
 	var Home = __webpack_require__(451);
@@ -43983,12 +43984,16 @@
 
 	var PollApp = React.createClass({displayName: "PollApp",
 
+		mixins: [ReactFireMixin],
+
 		getInitialState: function() {
 			return {text: '', title: '', chartData: [], loggedIn: true}
 		},
 
 		componentWillMount: function() {
 			this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
+			var ref = new Firebase("https://react-poll-f4f47.firebaseio.com/items");
+			this.bindAsArray(ref, "items");
 		},
 
 		componentDidMount: function() {
@@ -44032,6 +44037,7 @@
 			$.ajax({
 				url: url,
 				type: "DELETE",
+				headers: { 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE' },
 				data: JSON.stringify(data),
 				contentType: "application/json",
 		    success: function(data) {
