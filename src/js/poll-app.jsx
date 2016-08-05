@@ -1,8 +1,6 @@
 var React = require('react');
+var ReactDOM = require('react-dom');
 var OptionSelector = require('./option-selector.jsx');
-var url = 'https://api.mlab.com/api/1/databases/votingapp/collections/polls?apiKey=Wfc5q2m2_pkfpuW5Qtj0aYwH8H6DinFR';
-// var url = 'http://localhost:27017/test/'
-var $ = require('jquery');
 var ReactBootstrap = require('react-bootstrap');
 var Home = require('./home.jsx');
 
@@ -13,67 +11,19 @@ var PollApp = React.createClass({
 	mixins: [ReactFireMixin],
 
 	getInitialState: function() {
-		return {text: '', title: '', chartData: [], loggedIn: true}
+		return {text: '', title: '', loggedIn: true, pollData: []}
 	},
 
 	componentWillMount: function() {
 		this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
-		var ref = new Firebase("https://react-poll-f4f47.firebaseio.com/items");
-		this.bindAsArray(ref, "items");
-	},
-
-	componentDidMount: function() {
-		this.getData();
+		var firebaseRef = firebase.database().ref('reactPoll/pollData');
+		this.bindAsArray(firebaseRef, 'pollData');
 	},
 
 	componentWillUnmount: function() {
 	  this.serverRequest.abort();
   },
 
-	getData: function() {
-		this.serverRequest = $.ajax({
-		  url: url, 
-		  dataType: 'json',
-		  cache: false,
-		  success: function(data) {
-		    this.setState({chartData: data});
-		  }.bind(this),
-		  error: function(xhr, status, err) {
-		    console.error(this.props.url, status, err.toString());
-		  }.bind(this)
-		});
-	},
-
-	post: function(url, data) {
-		$.ajax({
-			url: url,
-			type: "POST",
-			data: JSON.stringify(data),
-			contentType: "application/json",
-	    success: function(data) {
-	    	this.getData();
-	    }.bind(this),
-	    error: function(xhr, status, err) {
-	      console.error(this.props.url, status, err.toString());
-	    }.bind(this)
-		})	
-	},
-
-	del: function(url, data) {
-		$.ajax({
-			url: url,
-			type: "DELETE",
-			headers: { 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE' },
-			data: JSON.stringify(data),
-			contentType: "application/json",
-	    success: function(data) {
-	    	this.getData();
-	    }.bind(this),
-	    error: function(xhr, status, err) {
-	      console.error(this.props.url, status, err.toString());
-	    }.bind(this)
-		})	
-	},
 	handleInputTitle: function(e) {
 		this.setState({title: e.target.value});
 	},
@@ -90,21 +40,22 @@ var PollApp = React.createClass({
 		var initialData = choices.map(function(item) {return 0;});
 		var nextText = '';
 		var nextTitle = '';
-		var nextChart = this.state.chartData.concat([{tite: title, labels:choices, datasets:[{data:initialData}]}])
-		this.setState({text: nextText, title: nextTitle, chartData: nextChart});
-		this.post(url, [{title: title, labels:choices, datasets:[{data:initialData}]}]);
-
+		var nextChart = this.state.pollData.concat([{tite: title, labels:choices, datasets:[{data:initialData}]}]);
+		this.setState({pollData: nextChart});
+		this.firebaseRefs['pollData'].push(
+			{title: title, labels: choices, datasets: [{data: initialData}]}
+		);
+		this.setState({text: nextText, title: nextTitle});
 	},
 
 	handleLogout: function() {
 		localStorage.removeItem('id_token');
 		this.setState({loggedIn: false});
+		console.log("hello")
 	},
 
 	handleDelete: function(delIndex) {
-		updatedPoll = this.state.chartData[delIndex];
-		console.log(this.state.chartData[delIndex]);
-		this.del(url, updatedPoll);
+		updatedPoll = this.state.pollData[delIndex];
 	},
 
   render: function() {
@@ -135,7 +86,7 @@ var PollApp = React.createClass({
 			  			</form>
 	  				</Col>
 						<Col xs={12} md={4} mdOffset={2}>
-							<OptionSelector chartData={this.state.chartData} onDelete={this.handleDelete} />
+							<OptionSelector pollData={this.state.pollData} onDelete={this.handleDelete} />
 						</Col>
 					</Row>
 	  		</Grid>

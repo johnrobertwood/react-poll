@@ -1,4 +1,5 @@
 var React = require('react');
+var ReactDOM = require('react-dom');
 var Home = require('./home.jsx');
 var LoggedIn = require('./loggedin.jsx');
 var PollApp = require('./poll-app.jsx');

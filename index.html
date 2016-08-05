@@ -6,10 +6,26 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">
   <script src="https://cdn.auth0.com/js/lock-9.0.min.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <!-- Firebase -->
-  <script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
+  <script src="https://fb.me/react-15.0.1.min.js"></script>
+  <script src="https://fb.me/react-dom-15.0.1.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/3.2.1/firebase.js"></script>
   <!-- ReactFire -->
-  <script src="https://cdn.firebase.com/libs/reactfire/0.6.0/reactfire.min.js"></script>
+  <script src="https://cdn.firebase.com/libs/reactfire/1.0.0/reactfire.min.js"></script>
+  <!-- throw-in-the-towel -->
+  <script src="https://npmcdn.com/throw-in-the-towel@2"></script>
+  <script>
+  
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyDUqkE_iNXF8vAVb4uoPCBzPQl22M-xkiU",
+      authDomain: "react-poll-f4f47.firebaseapp.com",
+      databaseURL: "https://react-poll-f4f47.firebaseio.com",
+      storageBucket: "react-poll-f4f47.appspot.com",
+    };
+    firebase.initializeApp(config);
+  </script>
+
+
 </head>
 <body>
 
