@@ -37,13 +37,30 @@ var PollApp = React.createClass({
 		var title = this.state.title;
 		var parseText = this.state.text.split(' ').join('').split(',');
 		var choices = parseText.map(function(item) {return [item];});
+		var colors = choices.map(function() {
+			return '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+			  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+		})
 		var initialData = choices.map(function(item) {return 0;});
 		var nextText = '';
 		var nextTitle = '';
-		var nextChart = this.state.pollData.concat([{tite: title, labels:choices, datasets:[{data:initialData}]}]);
+		var nextChart = this.state.pollData.concat(
+			[
+			  {
+			  	labels:choices, 
+			  	datasets:[
+			  	  {
+			  	  	label: title,
+			  	  	fillColor: colors,
+			  	  	data: initialData,
+			  	  }
+		  	  ]
+		  	}
+	  	]
+  	);
 		this.setState({pollData: nextChart});
 		this.firebaseRefs['pollData'].push(
-			{title: title, labels: choices, datasets: [{data: initialData}]}
+			{labels: choices, datasets: [{labels: choices, fillColor: colors, data: initialData}]}
 		);
 		this.setState({text: nextText, title: nextTitle});
 	},

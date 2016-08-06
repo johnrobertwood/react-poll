@@ -1,8 +1,9 @@
 var React = require('react');
 var PollBarChart = require('./bar-chart.jsx');
+var PollPieChart = require('./pie-chart.jsx');
 var ReactBootstrap = require('react-bootstrap');
 
-var pollData = [{labels: [],datasets: [{data: [],}]}];
+// var pollData = [{labels: [],datasets: [{data: [],}]}];
 
 var OptionSelector = React.createClass({
 
@@ -29,14 +30,13 @@ var OptionSelector = React.createClass({
 		var dataArr = this.props.pollData[pollIndex].labels;
 		var updatedPoll;
 		var pollKey = e.target.getAttribute('data-key');
-
 		for (var i = 0; i < length; i++) {
 			if (dataArr[i][0] === e.target.value) {
 				var voteNum = this.props.pollData[pollIndex].datasets[0].data[i];
 				var voteNumState = this.state.pollData[pollIndex].datasets[0].data[i];
 				this.props.pollData[pollIndex].datasets[0].data[i] += 1;
 				this.setState({pollData: this.props.pollData });
-				firebaseRef.child(pollKey).update({"datasets": this.state.pollData[pollIndex].datasets});
+				firebaseRef.child(pollKey).update({datasets: this.state.pollData[pollIndex].datasets});
 			}
 		}
 	},
@@ -61,6 +61,7 @@ var OptionSelector = React.createClass({
 		    							return <option key={i} value={subitem[0]}>{subitem[0]}</option>}, this)}
 		    				</FormControl>
 	    				</FormGroup>
+
 								<PollBarChart data={this.props.pollData[i]} />
 								<Button onClick={_this.handleDelete.bind(null, item['.key'])} bsStyle="danger">Delete</Button>
 								<hr />
