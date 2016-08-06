@@ -45815,26 +45815,19 @@
 				  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
 			})
 			var initialData = choices.map(function(item) {return 0;});
+			var pieData = parseText.map(function(item) {
+				var obj = {}
+				obj.label = item;
+				obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+				  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+				obj.value = 0;
+				return obj;
+			})
 			var nextText = '';
 			var nextTitle = '';
-			var nextChart = this.state.pollData.concat(
-				[
-				  {
-				  	labels:choices, 
-				  	datasets:[
-				  	  {
-				  	  	label: title,
-				  	  	fillColor: colors,
-				  	  	data: initialData,
-				  	  }
-			  	  ]
-			  	}
-		  	]
-	  	);
+			var nextChart = this.state.pollData.concat([pieData]);
 			this.setState({pollData: nextChart});
-			this.firebaseRefs['pollData'].push(
-				{labels: choices, datasets: [{labels: choices, fillColor: colors, data: initialData}]}
-			);
+			this.firebaseRefs['pollData'].push(pieData);		
 			this.setState({text: nextText, title: nextTitle});
 		},
 
@@ -45921,17 +45914,16 @@
 		handleChange: function(e) {
 			var firebaseRef = firebase.database().ref('reactPoll/pollData');
 			var pollIndex = e.target.getAttribute('data-index');
-			var length = this.props.pollData[pollIndex].labels.length;
-			var dataArr = this.props.pollData[pollIndex].labels;
+			console.log(this.props.pollData[pollIndex]);
+			var length = this.props.pollData[pollIndex].length;
+			var dataArr = this.props.pollData[pollIndex];
 			var updatedPoll;
 			var pollKey = e.target.getAttribute('data-key');
 			for (var i = 0; i < length; i++) {
-				if (dataArr[i][0] === e.target.value) {
-					var voteNum = this.props.pollData[pollIndex].datasets[0].data[i];
-					var voteNumState = this.state.pollData[pollIndex].datasets[0].data[i];
-					this.props.pollData[pollIndex].datasets[0].data[i] += 1;
-					this.setState({pollData: this.props.pollData });
-					firebaseRef.child(pollKey).update({datasets: this.state.pollData[pollIndex].datasets});
+				if (dataArr[i].label === e.target.value) {
+					this.props.pollData[pollIndex][i].value += 1;
+					this.setState({pollData: this.props.pollData});
+					firebaseRef.child(pollKey).set(this.state.pollData)
 				}
 			}
 		},
@@ -45947,17 +45939,16 @@
 			var _this = this;
 		  var createItem = function(item, i) {
 		    return React.createElement("div", {key: i}, 
-		    				React.createElement("h3", null, item.title), 
 		    				React.createElement(FormGroup, {controlId: "formControlsSelect"}, 
-		    					React.createElement(ControlLabel, null, "Vote!"), 
+		    					React.createElement(ControlLabel, null, "Vote"), 
 			    				React.createElement(FormControl, {componentClass: "select", key: i, "data-index": i, "data-key": item['.key'], onChange: this.handleChange, defaultValue: "default"}, 
 			    					React.createElement("option", {disabled: true, value: "default"}, " --- "), 
-			    						item.labels.map(function(subitem, i) {
-			    							return React.createElement("option", {key: i, value: subitem[0]}, subitem[0])}, this)
+			    						item.map(function(subitem, i) {
+			    							return React.createElement("option", {key: i, value: subitem.label}, subitem.label)}, this)
 			    				)
 		    				), 
 
-									React.createElement(PollBarChart, {data: this.props.pollData[i]}), 
+									React.createElement(PollPieChart, {data: this.props.pollData[i]}), 
 									React.createElement(Button, {onClick: _this.handleDelete.bind(null, item['.key']), bsStyle: "danger"}, "Delete"), 
 									React.createElement("hr", null)
 								)
