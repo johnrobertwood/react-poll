@@ -53,8 +53,7 @@ var PollApp = React.createClass({
 		var nextText = '';
 		var nextTitle = '';
 		var nextChart = this.state.pollData.concat([pieData]);
-		this.setState({pollData: nextChart});
-		this.firebaseRefs['pollData'].push(pieData);		
+		this.firebaseRefs['pollData'].push([pieData]);		
 		this.setState({text: nextText, title: nextTitle});
 	},
 

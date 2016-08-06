@@ -45826,8 +45826,7 @@
 			var nextText = '';
 			var nextTitle = '';
 			var nextChart = this.state.pollData.concat([pieData]);
-			this.setState({pollData: nextChart});
-			this.firebaseRefs['pollData'].push(pieData);		
+			this.firebaseRefs['pollData'].push([pieData]);		
 			this.setState({text: nextText, title: nextTitle});
 		},
 
@@ -45914,16 +45913,14 @@
 		handleChange: function(e) {
 			var firebaseRef = firebase.database().ref('reactPoll/pollData');
 			var pollIndex = e.target.getAttribute('data-index');
-			console.log(this.props.pollData[pollIndex]);
-			var length = this.props.pollData[pollIndex].length;
-			var dataArr = this.props.pollData[pollIndex];
+			var length = this.props.pollData[pollIndex][0].length;
+			var dataArr = this.props.pollData[pollIndex][0];
 			var updatedPoll;
 			var pollKey = e.target.getAttribute('data-key');
 			for (var i = 0; i < length; i++) {
 				if (dataArr[i].label === e.target.value) {
-					this.props.pollData[pollIndex][i].value += 1;
-					this.setState({pollData: this.props.pollData});
-					firebaseRef.child(pollKey).set(this.state.pollData)
+					this.props.pollData[pollIndex][0][i].value += 1;
+					firebaseRef.child(pollKey).update({0: this.state.pollData[pollIndex][0]});
 				}
 			}
 		},
@@ -45943,12 +45940,12 @@
 		    					React.createElement(ControlLabel, null, "Vote"), 
 			    				React.createElement(FormControl, {componentClass: "select", key: i, "data-index": i, "data-key": item['.key'], onChange: this.handleChange, defaultValue: "default"}, 
 			    					React.createElement("option", {disabled: true, value: "default"}, " --- "), 
-			    						item.map(function(subitem, i) {
+			    						item[0].map(function(subitem, i) {
 			    							return React.createElement("option", {key: i, value: subitem.label}, subitem.label)}, this)
 			    				)
 		    				), 
 
-									React.createElement(PollPieChart, {data: this.props.pollData[i]}), 
+									React.createElement(PollPieChart, {data: this.props.pollData[i][0]}), 
 									React.createElement(Button, {onClick: _this.handleDelete.bind(null, item['.key']), bsStyle: "danger"}, "Delete"), 
 									React.createElement("hr", null)
 								)

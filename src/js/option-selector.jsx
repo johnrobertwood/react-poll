@@ -26,16 +26,14 @@ var OptionSelector = React.createClass({
 	handleChange: function(e) {
 		var firebaseRef = firebase.database().ref('reactPoll/pollData');
 		var pollIndex = e.target.getAttribute('data-index');
-		console.log(this.props.pollData[pollIndex]);
-		var length = this.props.pollData[pollIndex].length;
-		var dataArr = this.props.pollData[pollIndex];
+		var length = this.props.pollData[pollIndex][0].length;
+		var dataArr = this.props.pollData[pollIndex][0];
 		var updatedPoll;
 		var pollKey = e.target.getAttribute('data-key');
 		for (var i = 0; i < length; i++) {
 			if (dataArr[i].label === e.target.value) {
-				this.props.pollData[pollIndex][i].value += 1;
-				this.setState({pollData: this.props.pollData});
-				firebaseRef.child(pollKey).set(this.state.pollData)
+				this.props.pollData[pollIndex][0][i].value += 1;
+				firebaseRef.child(pollKey).update({0: this.state.pollData[pollIndex][0]});
 			}
 		}
 	},
@@ -55,12 +53,11 @@ var OptionSelector = React.createClass({
 	    					<ControlLabel>Vote</ControlLabel>
 		    				<FormControl componentClass="select" key={i} data-index={i} data-key={item['.key']} onChange={this.handleChange} defaultValue="default">
 		    					<option disabled value="default"> --- </option>
-		    						{item.map(function(subitem, i) {
+		    						{item[0].map(function(subitem, i) {
 		    							return <option key={i} value={subitem.label}>{subitem.label}</option>}, this)}
 		    				</FormControl>
 	    				</FormGroup>
-
-								<PollPieChart data={this.props.pollData[i]} />
+								<PollPieChart data={this.props.pollData[i][0]} />
 								<Button onClick={_this.handleDelete.bind(null, item['.key'])} bsStyle="danger">Delete</Button>
 								<hr />
 							</div>
