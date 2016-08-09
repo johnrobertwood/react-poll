@@ -1,0 +1,23 @@
+ul.pie-legend {
+  text-align: center;
+  list-style: none;
+  padding: 30px 0;
+}
+
+.pie-legend {
+  li {
+    display: inline-block;
+  }
+  span {
+    padding: 10px;
+  }
+}
+
+span.pie-legend-icon {
+  margin: 5px;
+}
+
+nav ul li {
+	display: inline-block;
+	margin: 10px;
+} 

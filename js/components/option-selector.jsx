@@ -1,9 +1,6 @@
 var React = require('react');
-var PollBarChart = require('./bar-chart.jsx');
-var PollPieChart = require('./pie-chart.jsx');
 var ReactBootstrap = require('react-bootstrap');
-
-// var pollData = [{labels: [],datasets: [{data: [],}]}];
+var PollPieChart = require('./pie-chart.jsx');
 
 var OptionSelector = React.createClass({
 
@@ -15,7 +12,6 @@ var OptionSelector = React.createClass({
 
 	componentWillMount: function() {
 		var firebaseRef = firebase.database().ref('reactPoll/pollData');
-
 	},
 
 	handleDelete: function(key) {
@@ -49,25 +45,30 @@ var OptionSelector = React.createClass({
 		var _this = this;
 	  var createItem = function(item, i) {
 	    return <div key={i}>
-	    				<FormGroup controlId="formControlsSelect">
-	    					<ControlLabel>Vote</ControlLabel>
-		    				<FormControl componentClass="select" key={i} data-index={i} data-key={item['.key']} onChange={this.handleChange} defaultValue="default">
-		    					<option disabled value="default"> --- </option>
-		    						{item[0].map(function(subitem, i) {
-		    							return <option key={i} value={subitem.label}>{subitem.label}</option>}, this)}
-		    				</FormControl>
-	    				</FormGroup>
-								<PollPieChart data={this.props.pollData[i][0]} />
+	    				<div className="row">
+		    				<FormGroup controlId="formControlsSelect">
+		    					<ControlLabel>Vote</ControlLabel>
+			    				<FormControl 
+			    				  componentClass="select" 
+			    				  key={i} data-index={i} 
+			    				  data-key={item['.key']} 
+			    				  onChange={this.handleChange} 
+			    				  defaultValue="default">
+			    					<option disabled value="default">{this.props.title}</option>
+			    						{item[0].map(function(subitem, i) {
+			    							return <option key={i} value={subitem.label}>{subitem.label}</option>}, this)}
+			    				</FormControl>
+		    				</FormGroup>
+								<PollPieChart data={item[0]} />
 								<Button onClick={_this.handleDelete.bind(null, item['.key'])} bsStyle="danger">Delete</Button>
-								<hr />
-							</div>
+	    				</div>
+							<hr />
+						</div>
 	  };
-
 	  return 	<div>
-							{this.props.pollData.map(createItem, this)}
+							{this.state.pollData.map(createItem, this)}
   					</div>
 	}
-
 })
 
 module.exports = OptionSelector;

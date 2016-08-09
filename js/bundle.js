@@ -34,7 +34,7 @@
 /******/ 	__webpack_require__.c = installedModules;
 
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
+/******/ 	__webpack_require__.p = "/build";
 
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(0);
@@ -52,15 +52,18 @@
 	var IndexRoute = __webpack_require__(175).IndexRoute;
 	var ReactBootstrap = __webpack_require__(238);
 	var Home = __webpack_require__(489);
-	var PollApp = __webpack_require__(490);
-	var App = __webpack_require__(504);
+	var PollApp = __webpack_require__(502);
+	var App = __webpack_require__(503);
+	var NewPoll = __webpack_require__(505);
+	__webpack_require__(506);
 
 
 	ReactDOM.render(
 	  React.createElement(Router, {history: browserHistory}, 
 	    React.createElement(Route, {path: "/", component: App}, 
 	      React.createElement(IndexRoute, {component: Home}), 
-		    React.createElement(Route, {path: "pollapp", component: PollApp})
+		    React.createElement(Route, {path: "/pollapp", component: PollApp}), 
+		    React.createElement(Route, {path: "/newpoll", component: NewPoll})
 	    )
 	  ),
 	  document.getElementById('container')
@@ -45750,18 +45753,92 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
+	var Link = __webpack_require__(175).Link;
+	var OptionSelector = __webpack_require__(490);
+	var ReactBootstrap = __webpack_require__(238);
 
 	var Home = React.createClass({displayName: "Home",
+
+		mixins: [ReactFireMixin],
+
+		getInitialState: function() {
+			return {text: '', title: '', loggedIn: true, pollData: [], profile: null}
+		},
+
+		componentDidMount: function() {
+		  // The token is passed down from the App component 
+		  // and used to retrieve the profile
+		  var userRef = firebase.database().ref('reactPoll/users')
+		  this.bindAsArray(userRef, 'users');
+
+		  this.props.lock.getProfile(this.props.idToken, function (err, profile) {
+		    if (err) {
+		      console.log("Error loading the Profile", err);
+		      return;
+		    }
+		    console.log(profile);
+		    this.setState({profile: profile});
+			  this.firebaseRefs['users'].update({profile: this.state.profile});
+		  }.bind(this));
+		},
+
+		componentWillMount: function() {
+			this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
+			var firebaseRef = firebase.database().ref('reactPoll/pollData');
+			this.bindAsArray(firebaseRef, 'pollData');
+		},
+
+		handleLogout: function() {
+			localStorage.removeItem('id_token');
+			this.setState({loggedIn: false});
+			browserHistory.push('/');
+		},
 
 	  showLock: function() {
 	    this.props.lock.show();
 	  },
 
 	  render: function() {
-	    return (
-	    React.createElement("div", {className: "login-box"}, 
-	      React.createElement("a", {onClick: this.showLock}, "Sign In")
-	    ));
+	  	var Col = ReactBootstrap.Col;
+	  	if (this.state.profile && this.state.loggedIn) {
+		    return (
+		    	React.createElement("div", null, 
+						React.createElement("header", null, 
+							React.createElement("nav", null, 
+								React.createElement("ul", null, 
+									React.createElement("li", null, React.createElement(Link, {to: "/"}, "Home")), 
+									React.createElement("li", null, React.createElement(Link, {to: "/mypolls"}, "My Polls")), 
+									React.createElement("li", null, React.createElement(Link, {to: "/newpoll"}, "New Poll")), 
+								  React.createElement("li", {className: "login-box"}, "Logged In")
+								)
+							)
+						), 
+						React.createElement(OptionSelector, {
+						  pollData: this.state.pollData, 
+						  onDelete: this.handleDelete, 
+						  title: this.state.title})
+			    )
+		    );
+	  	} else {
+		    return (
+		    	React.createElement("div", null, 
+						React.createElement("header", null, 
+							React.createElement("nav", null, 
+								React.createElement("ul", null, 
+									React.createElement("li", null, React.createElement(Link, {to: "/"}, "Home")), 
+								  React.createElement("li", {className: "login-box", onClick: this.showLock}, "Sign In")
+								)
+							)
+						), 
+						React.createElement(Col, {xs: 12, md: 4, mdOffset: 2}, 
+							React.createElement(OptionSelector, {
+							  pollData: this.state.pollData, 
+							  onDelete: this.handleDelete, 
+							  title: this.state.title})
+						)
+			    )
+		    );
+	  	}
 	  }
 	});
 
@@ -45772,125 +45849,8 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
-	var ReactDOM = __webpack_require__(35);
-	var OptionSelector = __webpack_require__(491);
+	var PollPieChart = __webpack_require__(491);
 	var ReactBootstrap = __webpack_require__(238);
-	var Home = __webpack_require__(489);
-
-	// var chartData = [{labels: [],datasets: [{data: [],}]}];
-
-	var PollApp = React.createClass({displayName: "PollApp",
-
-		mixins: [ReactFireMixin],
-
-		getInitialState: function() {
-			return {text: '', title: '', loggedIn: true, pollData: []}
-		},
-
-		componentWillMount: function() {
-			this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
-			var firebaseRef = firebase.database().ref('reactPoll/pollData');
-			this.bindAsArray(firebaseRef, 'pollData');
-		},
-
-		componentWillUnmount: function() {
-		  this.serverRequest.abort();
-	  },
-
-		handleInputTitle: function(e) {
-			this.setState({title: e.target.value});
-		},
-
-		handleInputOptions: function(e) {
-			this.setState({text: e.target.value});
-		},
-
-		handleSubmit: function(e) {
-			e.preventDefault();
-			var title = this.state.title;
-			var parseText = this.state.text.split(' ').join('').split(',');
-			var choices = parseText.map(function(item) {return [item];});
-			var colors = choices.map(function() {
-				return '#'+'0123456789abcdef'.split('').map(function(v,i,a){
-				  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
-			})
-			var initialData = choices.map(function(item) {return 0;});
-			var pieData = parseText.map(function(item) {
-				var obj = {}
-				obj.label = item;
-				obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
-				  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
-				obj.value = 0;
-				return obj;
-			})
-			var nextText = '';
-			var nextTitle = '';
-			var nextChart = this.state.pollData.concat([pieData]);
-			this.firebaseRefs['pollData'].push([pieData]);		
-			this.setState({text: nextText, title: nextTitle});
-		},
-
-		handleLogout: function() {
-			localStorage.removeItem('id_token');
-			this.setState({loggedIn: false});
-			console.log("hello")
-		},
-
-		handleDelete: function(delIndex) {
-			updatedPoll = this.state.pollData[delIndex];
-		},
-
-	  render: function() {
-	  	var FieldGroup = ReactBootstrap.FieldGroup;
-	  	var FormGroup = ReactBootstrap.FormGroup;
-	  	var FormControl = ReactBootstrap.FormControl;
-	  	var ControlLabel = ReactBootstrap.ControlLabel;
-	  	var Button = ReactBootstrap.Button;
-	  	var Row = ReactBootstrap.Row;
-	  	var Col = ReactBootstrap.Col;
-	  	var Grid = ReactBootstrap.Grid;
-	  	if (this.state.loggedIn) {
-		    return (
-		  		React.createElement(Grid, null, 
-		  			React.createElement(Row, null, 
-							React.createElement(Col, {xs: 12, md: 3}, 
-				  			React.createElement("form", {onSubmit: this.handleSubmit}, 
-					  			React.createElement(FormGroup, {controlId: "formControlsText"}, 
-					  				React.createElement(ControlLabel, null, "Poll Title"), 
-					  				React.createElement(FormControl, {type: "text", onChange: this.handleInputTitle, value: this.state.title, required: true})
-				  				), 
-									React.createElement(FormGroup, {controlId: "formControlsTextarea"}, 
-					  				React.createElement(ControlLabel, null, "Choices (separated by commas)"), 
-					  				React.createElement(FormControl, {componentClass: "textarea", rows: "4", value: this.state.text, onChange: this.handleInputOptions, required: true})
-									), 
-				  				React.createElement(Button, {type: "submit"}, "Add Poll"), 
-				  				React.createElement(Button, {onClick: this.handleLogout, bsStyle: "danger"}, "Logout")
-				  			)
-		  				), 
-							React.createElement(Col, {xs: 12, md: 4, mdOffset: 2}, 
-								React.createElement(OptionSelector, {pollData: this.state.pollData, onDelete: this.handleDelete})
-							)
-						)
-		  		)
-		    );	
-	  	} else {
-	  		return ( React.createElement(Home, {lock: this.lock}))
-	  	}
-	  } 
-	});
-
-	module.exports = PollApp;
-
-/***/ },
-/* 491 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(1);
-	var PollBarChart = __webpack_require__(492);
-	var PollPieChart = __webpack_require__(503);
-	var ReactBootstrap = __webpack_require__(238);
-
-	// var pollData = [{labels: [],datasets: [{data: [],}]}];
 
 	var OptionSelector = React.createClass({displayName: "OptionSelector",
 
@@ -45902,7 +45862,6 @@
 
 		componentWillMount: function() {
 			var firebaseRef = firebase.database().ref('reactPoll/pollData');
-
 		},
 
 		handleDelete: function(key) {
@@ -45938,70 +45897,113 @@
 		    return React.createElement("div", {key: i}, 
 		    				React.createElement(FormGroup, {controlId: "formControlsSelect"}, 
 		    					React.createElement(ControlLabel, null, "Vote"), 
-			    				React.createElement(FormControl, {componentClass: "select", key: i, "data-index": i, "data-key": item['.key'], onChange: this.handleChange, defaultValue: "default"}, 
-			    					React.createElement("option", {disabled: true, value: "default"}, " --- "), 
+			    				React.createElement(FormControl, {
+			    				  componentClass: "select", 
+			    				  key: i, "data-index": i, 
+			    				  "data-key": item['.key'], 
+			    				  onChange: this.handleChange, 
+			    				  defaultValue: "default"}, 
+			    					React.createElement("option", {disabled: true, value: "default"}, this.props.title), 
 			    						item[0].map(function(subitem, i) {
 			    							return React.createElement("option", {key: i, value: subitem.label}, subitem.label)}, this)
 			    				)
 		    				), 
-
-									React.createElement(PollPieChart, {data: this.props.pollData[i][0]}), 
-									React.createElement(Button, {onClick: _this.handleDelete.bind(null, item['.key']), bsStyle: "danger"}, "Delete"), 
-									React.createElement("hr", null)
-								)
+								React.createElement(PollPieChart, {
+								  data: this.props.pollData[i][0]}), 
+								React.createElement(Button, {onClick: _this.handleDelete.bind(null, item['.key']), bsStyle: "danger"}, "Delete"), 
+								React.createElement("hr", null)
+							)
 		  };
-
 		  return 	React.createElement("div", null, 
 								this.props.pollData.map(createItem, this)
 	  					)
 		}
-
 	})
 
 	module.exports = OptionSelector;
 
 /***/ },
-/* 492 */
+/* 491 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
-	var BarChart = __webpack_require__(493).Bar;
+	var PieChart = __webpack_require__(492).Pie;
 
-	var PollBarChart = React.createClass({displayName: "PollBarChart",
+	var PollPieChart = React.createClass({displayName: "PollPieChart",
+
+		componentDidMount: function() {
+			var legend = this.refs.chart.getChart().generateLegend();
+
+			this.setState({legend: legend});
+		},
 
 	  render: function() {
-	    return React.createElement(BarChart, {data: this.props.data})
+
+	  	var legend = this.state && this.state.legend || '';
+
+	  	var chartOptions = {
+	  	    //Boolean - Whether we should show a stroke on each segment
+	  	    segmentShowStroke : true,
+
+	  	    //String - The colour of each segment stroke
+	  	    segmentStrokeColor : "#fff",
+
+	  	    //Number - The width of each segment stroke
+	  	    segmentStrokeWidth : 2,
+
+	  	    //Number - The percentage of the chart that we cut out of the middle
+	  	    percentageInnerCutout : 50, // This is 0 for Pie charts
+
+	  	    //Number - Amount of animation steps
+	  	    animationSteps : 100,
+
+	  	    //String - Animation easing effect
+	  	    animationEasing : "easeOutBounce",
+
+	  	    //Boolean - Whether we animate the rotation of the Doughnut
+	  	    animateRotate : true,
+
+	  	    //Boolean - Whether we animate scaling the Doughnut from the centre
+	  	    animateScale : false
+	  	}
+			 	
+	    return (
+	    	React.createElement("div", null, 
+		    	React.createElement(PieChart, {data: this.props.data, options: chartOptions, ref: "chart"}), 
+		    	React.createElement("div", {dangerouslySetInnerHTML: { __html: legend}})
+		    )
+	    )
 	  }
 	});
 
-	module.exports = PollBarChart;
+	module.exports = PollPieChart;
+
+/***/ },
+/* 492 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = {
+	  Bar: __webpack_require__(493),
+	  Doughnut: __webpack_require__(497),
+	  Line: __webpack_require__(498),
+	  Pie: __webpack_require__(499),
+	  PolarArea: __webpack_require__(500),
+	  Radar: __webpack_require__(501),
+	  createClass: __webpack_require__(494).createClass
+	};
+
 
 /***/ },
 /* 493 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = {
-	  Bar: __webpack_require__(494),
-	  Doughnut: __webpack_require__(498),
-	  Line: __webpack_require__(499),
-	  Pie: __webpack_require__(500),
-	  PolarArea: __webpack_require__(501),
-	  Radar: __webpack_require__(502),
-	  createClass: __webpack_require__(495).createClass
-	};
-
-
-/***/ },
-/* 494 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var vars = __webpack_require__(495);
+	var vars = __webpack_require__(494);
 
 	module.exports = vars.createClass('Bar', ['getBarsAtEvent']);
 
 
 /***/ },
-/* 495 */
+/* 494 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
@@ -46064,7 +46066,7 @@
 	    };
 
 	    classData.initializeChart = function(nextProps) {
-	      var Chart = __webpack_require__(496);
+	      var Chart = __webpack_require__(495);
 	      var el = ReactDOM.findDOMNode(this);
 	      var ctx = el.getContext("2d");
 	      var chart = new Chart(ctx)[chartType](nextProps.data, nextProps.options || {});
@@ -46155,7 +46157,7 @@
 
 
 /***/ },
-/* 496 */
+/* 495 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -46469,7 +46471,7 @@
 				//Method for warning of errors
 				if (window.console && typeof window.console.warn === "function") console.warn(str);
 			},
-			amd = helpers.amd = ("function" === 'function' && __webpack_require__(497)),
+			amd = helpers.amd = ("function" === 'function' && __webpack_require__(496)),
 			//-- Math methods
 			isNumber = helpers.isNumber = function(n){
 				return !isNaN(parseFloat(n)) && isFinite(n);
@@ -49897,7 +49899,7 @@
 
 
 /***/ },
-/* 497 */
+/* 496 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -49905,76 +49907,202 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
+/* 497 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var vars = __webpack_require__(494);
+
+	module.exports = vars.createClass('Doughnut', ['getSegmentsAtEvent']);
+
+
+/***/ },
 /* 498 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(495);
+	var vars = __webpack_require__(494);
 
-	module.exports = vars.createClass('Doughnut', ['getSegmentsAtEvent']);
+	module.exports = vars.createClass('Line', ['getPointsAtEvent']);
 
 
 /***/ },
 /* 499 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(495);
+	var vars = __webpack_require__(494);
 
-	module.exports = vars.createClass('Line', ['getPointsAtEvent']);
+	module.exports = vars.createClass('Pie', ['getSegmentsAtEvent']);
 
 
 /***/ },
 /* 500 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(495);
+	var vars = __webpack_require__(494);
 
-	module.exports = vars.createClass('Pie', ['getSegmentsAtEvent']);
+	module.exports = vars.createClass('PolarArea', ['getSegmentsAtEvent']);
 
 
 /***/ },
 /* 501 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(495);
+	var vars = __webpack_require__(494);
 
-	module.exports = vars.createClass('PolarArea', ['getSegmentsAtEvent']);
+	module.exports = vars.createClass('Radar', ['getPointsAtEvent']);
 
 
 /***/ },
 /* 502 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(495);
+	var React = __webpack_require__(1);
+	var ReactDOM = __webpack_require__(35);
+	var OptionSelector = __webpack_require__(490);
+	var ReactBootstrap = __webpack_require__(238);
+	var browserHistory = __webpack_require__(175).browserHistory;
+	var Home = __webpack_require__(489);
 
-	module.exports = vars.createClass('Radar', ['getPointsAtEvent']);
+	var PollApp = React.createClass({displayName: "PollApp",
 
+		mixins: [ReactFireMixin],
+
+		getInitialState: function() {
+			return {text: '', title: '', loggedIn: true, pollData: [], profile: null}
+		},
+
+		componentDidMount: function() {
+		  // The token is passed down from the App component 
+		  // and used to retrieve the profile
+		  var userRef = firebase.database().ref('reactPoll/users')
+		  this.bindAsArray(userRef, 'users');
+
+		  this.props.lock.getProfile(this.props.idToken, function (err, profile) {
+		    if (err) {
+		      console.log("Error loading the Profile", err);
+		      return;
+		    }
+		    console.log(profile);
+		    this.setState({profile: profile});
+			  this.firebaseRefs['users'].update({profile: this.state.profile});
+		  }.bind(this));
+		},
+
+		componentWillMount: function() {
+			this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
+			var firebaseRef = firebase.database().ref('reactPoll/pollData');
+			this.bindAsArray(firebaseRef, 'pollData');
+		},
+
+		componentWillUnmount: function() {
+		  this.serverRequest.abort();
+	  },
+
+		handleInputTitle: function(e) {
+			this.setState({title: e.target.value});
+		},
+
+		handleInputOptions: function(e) {
+			this.setState({text: e.target.value});
+		},
+
+		handleSubmit: function(e) {
+			e.preventDefault();
+			var title = this.state.title;
+			var parseText = this.state.text.split(' ').join('').split(',');
+			var choices = parseText.map(function(item) {return [item];});
+			var colors = choices.map(function() {
+				return '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+				  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+			})
+			var initialData = choices.map(function(item) {return 0;});
+			var pieData = parseText.map(function(item) {
+				var obj = {}
+				obj.label = item;
+				obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+				  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+				obj.value = 0;
+				return obj;
+			})
+			var nextText = '';
+			var nextTitle = '';
+			var nextChart = this.state.pollData.concat([pieData]);
+			this.firebaseRefs['pollData'].push([pieData]);		
+			this.setState({text: nextText, title: nextTitle});
+		},
+
+		handleLogout: function() {
+			localStorage.removeItem('id_token');
+			this.setState({loggedIn: false});
+			browserHistory.push('/');
+		},
+
+		handleDelete: function(delIndex) {
+			updatedPoll = this.state.pollData[delIndex];
+		},
+
+	  render: function() {
+	  	var FieldGroup = ReactBootstrap.FieldGroup;
+	  	var FormGroup = ReactBootstrap.FormGroup;
+	  	var FormControl = ReactBootstrap.FormControl;
+	  	var ControlLabel = ReactBootstrap.ControlLabel;
+	  	var Button = ReactBootstrap.Button;
+	  	var Row = ReactBootstrap.Row;
+	  	var Col = ReactBootstrap.Col;
+	  	var Grid = ReactBootstrap.Grid;
+
+	  	if (this.state.profile && this.state.loggedIn) {
+		    return (
+		  		React.createElement(Grid, null, 
+		  			React.createElement("h2", null, "Hello ", this.state.profile.nickname), 
+		  			React.createElement(Row, null, 
+							React.createElement(Col, {xs: 12, md: 3}, 
+				  			React.createElement("form", {onSubmit: this.handleSubmit}, 
+					  			React.createElement(FormGroup, {controlId: "formControlsText"}, 
+					  				React.createElement(ControlLabel, null, "Poll Title"), 
+					  				React.createElement(FormControl, {
+					  				  type: "text", 
+					  				  onChange: this.handleInputTitle, 
+					  				  value: this.state.title, 
+					  				  required: true})
+				  				), 
+									React.createElement(FormGroup, {controlId: "formControlsTextarea"}, 
+					  				React.createElement(ControlLabel, null, "Choices (separated by commas)"), 
+					  				React.createElement(FormControl, {
+					  				componentClass: "textarea", 
+					  				rows: "4", value: this.state.text, 
+					  				onChange: this.handleInputOptions, 
+					  				required: true})
+									), 
+				  				React.createElement(Button, {type: "submit"}, "Add Poll"), 
+				  				React.createElement(Button, {onClick: this.handleLogout, bsStyle: "danger"}, "Logout")
+				  			)
+		  				), 
+							React.createElement(Col, {xs: 12, md: 4, mdOffset: 2}, 
+								React.createElement(OptionSelector, {
+								  pollData: this.state.pollData, 
+								  onDelete: this.handleDelete, 
+								  title: this.state.title})
+							)
+						)
+		  		)
+		    );	
+	  	} else {
+	  		return ( React.createElement(Home, {lock: this.lock}) );
+	  	}
+	  } 
+	});
+
+	module.exports = PollApp;
 
 /***/ },
 /* 503 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
-	var PieChart = __webpack_require__(493).Pie;
-
-	var PollPieChart = React.createClass({displayName: "PollPieChart",
-
-	  render: function() {
-			 	
-	    return React.createElement(PieChart, {data: this.props.data})
-	  }
-	});
-
-	module.exports = PollPieChart;
-
-/***/ },
-/* 504 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(1);
 	var ReactDOM = __webpack_require__(35);
 	var Home = __webpack_require__(489);
-	var LoggedIn = __webpack_require__(505);
-	var PollApp = __webpack_require__(490);
+	var LoggedIn = __webpack_require__(504);
+	var PollApp = __webpack_require__(502);
 	var ReactBootstrap = __webpack_require__(238);
 
 	var App = React.createClass({displayName: "App",
@@ -50007,7 +50135,7 @@
 	  },
 	  render: function() {
 	    if (this.state.idToken) {
-	      return (React.createElement(PollApp, {idToken: this.state.idToken}));
+	      return (React.createElement(Home, {idToken: this.state.idToken, lock: this.lock}));
 	    } else {
 	      return (React.createElement(Home, {lock: this.lock}));
 	    }
@@ -50018,7 +50146,7 @@
 
 
 /***/ },
-/* 505 */
+/* 504 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
@@ -50059,6 +50187,372 @@
 	});
 
 	module.exports = LoggedIn;
+
+/***/ },
+/* 505 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(1);
+
+	var NewPoll = React.createClass({displayName: "NewPoll",
+
+		render: function() {
+			return (
+				React.createElement("h1", null, "NewPoll")
+			);
+		}
+		
+	});
+
+	module.exports = NewPoll;
+
+/***/ },
+/* 506 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+
+	// load the styles
+	var content = __webpack_require__(507);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(509)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../node_modules/css-loader/index.js!./../node_modules/sass-loader/index.js!./style.scss", function() {
+				var newContent = require("!!./../node_modules/css-loader/index.js!./../node_modules/sass-loader/index.js!./style.scss");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 507 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(508)();
+	// imports
+
+
+	// module
+	exports.push([module.id, "ul.pie-legend {\n  text-align: center;\n  list-style: none;\n  padding: 30px 0; }\n\n.pie-legend li {\n  display: inline-block; }\n\n.pie-legend span {\n  padding: 10px; }\n\nspan.pie-legend-icon {\n  margin: 5px; }\n\nnav ul li {\n  display: inline-block;\n  margin: 10px; }\n", ""]);
+
+	// exports
+
+
+/***/ },
+/* 508 */
+/***/ function(module, exports) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	// css base code, injected by the css-loader
+	module.exports = function() {
+		var list = [];
+
+		// return the list of modules as css string
+		list.toString = function toString() {
+			var result = [];
+			for(var i = 0; i < this.length; i++) {
+				var item = this[i];
+				if(item[2]) {
+					result.push("@media " + item[2] + "{" + item[1] + "}");
+				} else {
+					result.push(item[1]);
+				}
+			}
+			return result.join("");
+		};
+
+		// import a list of modules into the list
+		list.i = function(modules, mediaQuery) {
+			if(typeof modules === "string")
+				modules = [[null, modules, ""]];
+			var alreadyImportedModules = {};
+			for(var i = 0; i < this.length; i++) {
+				var id = this[i][0];
+				if(typeof id === "number")
+					alreadyImportedModules[id] = true;
+			}
+			for(i = 0; i < modules.length; i++) {
+				var item = modules[i];
+				// skip already imported module
+				// this implementation is not 100% perfect for weird media query combinations
+				//  when a module is imported multiple times with different media queries.
+				//  I hope this will never occur (Hey this way we have smaller bundles)
+				if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+					if(mediaQuery && !item[2]) {
+						item[2] = mediaQuery;
+					} else if(mediaQuery) {
+						item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+					}
+					list.push(item);
+				}
+			}
+		};
+		return list;
+	};
+
+
+/***/ },
+/* 509 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	var stylesInDom = {},
+		memoize = function(fn) {
+			var memo;
+			return function () {
+				if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+				return memo;
+			};
+		},
+		isOldIE = memoize(function() {
+			return /msie [6-9]\b/.test(window.navigator.userAgent.toLowerCase());
+		}),
+		getHeadElement = memoize(function () {
+			return document.head || document.getElementsByTagName("head")[0];
+		}),
+		singletonElement = null,
+		singletonCounter = 0,
+		styleElementsInsertedAtTop = [];
+
+	module.exports = function(list, options) {
+		if(false) {
+			if(typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+		}
+
+		options = options || {};
+		// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+		// tags it will allow on a page
+		if (typeof options.singleton === "undefined") options.singleton = isOldIE();
+
+		// By default, add <style> tags to the bottom of <head>.
+		if (typeof options.insertAt === "undefined") options.insertAt = "bottom";
+
+		var styles = listToStyles(list);
+		addStylesToDom(styles, options);
+
+		return function update(newList) {
+			var mayRemove = [];
+			for(var i = 0; i < styles.length; i++) {
+				var item = styles[i];
+				var domStyle = stylesInDom[item.id];
+				domStyle.refs--;
+				mayRemove.push(domStyle);
+			}
+			if(newList) {
+				var newStyles = listToStyles(newList);
+				addStylesToDom(newStyles, options);
+			}
+			for(var i = 0; i < mayRemove.length; i++) {
+				var domStyle = mayRemove[i];
+				if(domStyle.refs === 0) {
+					for(var j = 0; j < domStyle.parts.length; j++)
+						domStyle.parts[j]();
+					delete stylesInDom[domStyle.id];
+				}
+			}
+		};
+	}
+
+	function addStylesToDom(styles, options) {
+		for(var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+			if(domStyle) {
+				domStyle.refs++;
+				for(var j = 0; j < domStyle.parts.length; j++) {
+					domStyle.parts[j](item.parts[j]);
+				}
+				for(; j < item.parts.length; j++) {
+					domStyle.parts.push(addStyle(item.parts[j], options));
+				}
+			} else {
+				var parts = [];
+				for(var j = 0; j < item.parts.length; j++) {
+					parts.push(addStyle(item.parts[j], options));
+				}
+				stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+			}
+		}
+	}
+
+	function listToStyles(list) {
+		var styles = [];
+		var newStyles = {};
+		for(var i = 0; i < list.length; i++) {
+			var item = list[i];
+			var id = item[0];
+			var css = item[1];
+			var media = item[2];
+			var sourceMap = item[3];
+			var part = {css: css, media: media, sourceMap: sourceMap};
+			if(!newStyles[id])
+				styles.push(newStyles[id] = {id: id, parts: [part]});
+			else
+				newStyles[id].parts.push(part);
+		}
+		return styles;
+	}
+
+	function insertStyleElement(options, styleElement) {
+		var head = getHeadElement();
+		var lastStyleElementInsertedAtTop = styleElementsInsertedAtTop[styleElementsInsertedAtTop.length - 1];
+		if (options.insertAt === "top") {
+			if(!lastStyleElementInsertedAtTop) {
+				head.insertBefore(styleElement, head.firstChild);
+			} else if(lastStyleElementInsertedAtTop.nextSibling) {
+				head.insertBefore(styleElement, lastStyleElementInsertedAtTop.nextSibling);
+			} else {
+				head.appendChild(styleElement);
+			}
+			styleElementsInsertedAtTop.push(styleElement);
+		} else if (options.insertAt === "bottom") {
+			head.appendChild(styleElement);
+		} else {
+			throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
+		}
+	}
+
+	function removeStyleElement(styleElement) {
+		styleElement.parentNode.removeChild(styleElement);
+		var idx = styleElementsInsertedAtTop.indexOf(styleElement);
+		if(idx >= 0) {
+			styleElementsInsertedAtTop.splice(idx, 1);
+		}
+	}
+
+	function createStyleElement(options) {
+		var styleElement = document.createElement("style");
+		styleElement.type = "text/css";
+		insertStyleElement(options, styleElement);
+		return styleElement;
+	}
+
+	function createLinkElement(options) {
+		var linkElement = document.createElement("link");
+		linkElement.rel = "stylesheet";
+		insertStyleElement(options, linkElement);
+		return linkElement;
+	}
+
+	function addStyle(obj, options) {
+		var styleElement, update, remove;
+
+		if (options.singleton) {
+			var styleIndex = singletonCounter++;
+			styleElement = singletonElement || (singletonElement = createStyleElement(options));
+			update = applyToSingletonTag.bind(null, styleElement, styleIndex, false);
+			remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true);
+		} else if(obj.sourceMap &&
+			typeof URL === "function" &&
+			typeof URL.createObjectURL === "function" &&
+			typeof URL.revokeObjectURL === "function" &&
+			typeof Blob === "function" &&
+			typeof btoa === "function") {
+			styleElement = createLinkElement(options);
+			update = updateLink.bind(null, styleElement);
+			remove = function() {
+				removeStyleElement(styleElement);
+				if(styleElement.href)
+					URL.revokeObjectURL(styleElement.href);
+			};
+		} else {
+			styleElement = createStyleElement(options);
+			update = applyToTag.bind(null, styleElement);
+			remove = function() {
+				removeStyleElement(styleElement);
+			};
+		}
+
+		update(obj);
+
+		return function updateStyle(newObj) {
+			if(newObj) {
+				if(newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap)
+					return;
+				update(obj = newObj);
+			} else {
+				remove();
+			}
+		};
+	}
+
+	var replaceText = (function () {
+		var textStore = [];
+
+		return function (index, replacement) {
+			textStore[index] = replacement;
+			return textStore.filter(Boolean).join('\n');
+		};
+	})();
+
+	function applyToSingletonTag(styleElement, index, remove, obj) {
+		var css = remove ? "" : obj.css;
+
+		if (styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = replaceText(index, css);
+		} else {
+			var cssNode = document.createTextNode(css);
+			var childNodes = styleElement.childNodes;
+			if (childNodes[index]) styleElement.removeChild(childNodes[index]);
+			if (childNodes.length) {
+				styleElement.insertBefore(cssNode, childNodes[index]);
+			} else {
+				styleElement.appendChild(cssNode);
+			}
+		}
+	}
+
+	function applyToTag(styleElement, obj) {
+		var css = obj.css;
+		var media = obj.media;
+
+		if(media) {
+			styleElement.setAttribute("media", media)
+		}
+
+		if(styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = css;
+		} else {
+			while(styleElement.firstChild) {
+				styleElement.removeChild(styleElement.firstChild);
+			}
+			styleElement.appendChild(document.createTextNode(css));
+		}
+	}
+
+	function updateLink(linkElement, obj) {
+		var css = obj.css;
+		var sourceMap = obj.sourceMap;
+
+		if(sourceMap) {
+			// http://stackoverflow.com/a/26603875
+			css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+		}
+
+		var blob = new Blob([css], { type: "text/css" });
+
+		var oldSrc = linkElement.href;
+
+		linkElement.href = URL.createObjectURL(blob);
+
+		if(oldSrc)
+			URL.revokeObjectURL(oldSrc);
+	}
+
 
 /***/ }
 /******/ ]);

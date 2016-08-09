@@ -1,9 +1,9 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-var Home = require('./home.jsx');
-var LoggedIn = require('./loggedin.jsx');
-var PollApp = require('./poll-app.jsx');
 var ReactBootstrap = require('react-bootstrap');
+var Home = require('./home.jsx');
+var PollApp = require('./poll-app.jsx');
+var Header = require('./header.jsx');
 
 var App = React.createClass({
 
@@ -29,15 +29,23 @@ var App = React.createClass({
       if (authHash.error) {
         // Handle any error conditions
         console.log("Error signing in", authHash);
+
       }
     }
     return idToken;
   },
   render: function() {
+
     if (this.state.idToken) {
-      return (<PollApp idToken={this.state.idToken} />);
+      return (
+        <div>
+          <PollApp idToken={this.state.idToken} lock={this.lock} />
+        </div>
+      );
     } else {
-      return (<Home lock={this.lock} />);
+      return ( 
+        <Home lock={this.lock} />
+      );
     }
   }
 });
