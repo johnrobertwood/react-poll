@@ -8,12 +8,12 @@ var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
 var Header = require('./header.jsx');
 
-var PollApp = React.createClass({
+var AddPoll = React.createClass({
 
 	mixins: [ReactFireMixin],
 
 	getInitialState: function() {
-		return {text: '', title: '', loggedIn: true, pollData: [], profile: null}
+		return {text: '', title: '', loggedIn: true, pollData: [], profile: null, users: {}}
 	},
 
 	componentWillMount: function() {
@@ -26,20 +26,8 @@ var PollApp = React.createClass({
 
 	  var userRef = firebase.database().ref('users')
 	  this.bindAsArray(userRef, 'users');
-
 	  AppStore.addChangeListener(this._onChange);
 
-	  if (this.props.idToken) {
-		  this.props.lock.getProfile(this.props.idToken, function (err, profile) {
-		    if (err) {
-		      console.log("Error loading the Profile", err);
-		      return;
-		    }
-		    this.setState({profile: profile});
-		    console.log(profile)
-			  this.firebaseRefs['users'].push(profile);
-		  }.bind(this));
-	  }
 	},
 
 	_onChange: function() {
@@ -109,9 +97,6 @@ var PollApp = React.createClass({
 			  			  placeholder="What needs to be done?"
 			  			  onSave={this._onSave} />
 	  				</Col>
-						<Col xs={12} md={4} mdOffset={2}>
-							<OptionSelector pollData={this.state.pollData} />
-						</Col>
 					</Row>
 	  		</Grid>
 	  		</div>
@@ -119,4 +104,4 @@ var PollApp = React.createClass({
   } 
 });
 
-module.exports = PollApp;
+module.exports = AddPoll;

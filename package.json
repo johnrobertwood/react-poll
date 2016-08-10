@@ -8,6 +8,7 @@
     "chart.js": "^1.1.1",
     "express": "^4.14.0",
     "firebase": "^3.2.1",
+    "flux": "^2.1.1",
     "keymirror": "^0.1.1",
     "object-assign": "^4.1.0",
     "path": "^0.12.7",
@@ -15,8 +16,7 @@
     "react-bootstrap": "^0.30.0-rc.2",
     "react-chartjs": "^0.8.0",
     "react-dom": "^15.2.1",
-    "react-router": "^2.6.1",
-    "reactfire": "^1.0.0"
+    "react-router": "^2.6.1"
   },
   "devDependencies": {
     "css-loader": "^0.23.1",

@@ -2,13 +2,12 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var OptionSelector = require('./option-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
-var browserHistory = require('react-router').browserHistory;
 var PollTextInput = require('./PollTextInput.jsx');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
 var Header = require('./header.jsx');
 
-var PollApp = React.createClass({
+var MyPolls = React.createClass({
 
 	mixins: [ReactFireMixin],
 
@@ -23,7 +22,8 @@ var PollApp = React.createClass({
 	},
 
 	componentDidMount: function() {
-
+	  // The token is passed down from the App component 
+	  // and used to retrieve the profile
 	  var userRef = firebase.database().ref('users')
 	  this.bindAsArray(userRef, 'users');
 
@@ -35,9 +35,9 @@ var PollApp = React.createClass({
 		      console.log("Error loading the Profile", err);
 		      return;
 		    }
+
 		    this.setState({profile: profile});
-		    console.log(profile)
-			  this.firebaseRefs['users'].push(profile);
+			  this.firebaseRefs['users'].update({profile: this.state.profile});
 		  }.bind(this));
 	  }
 	},
@@ -100,15 +100,9 @@ var PollApp = React.createClass({
 
 	    return (
 	    	<div>
-	    	<h2>Poll App</h2>
+	    	<h3>My Polls</h3>
 	  		<Grid>
 	  			<Row>
-						<Col xs={12} md={3}>
-			  			<PollTextInput
-			  			  id="new-todo"
-			  			  placeholder="What needs to be done?"
-			  			  onSave={this._onSave} />
-	  				</Col>
 						<Col xs={12} md={4} mdOffset={2}>
 							<OptionSelector pollData={this.state.pollData} />
 						</Col>
@@ -119,4 +113,4 @@ var PollApp = React.createClass({
   } 
 });
 
-module.exports = PollApp;
+module.exports = MyPolls;

@@ -4,17 +4,42 @@ var ReactBootstrap = require('react-bootstrap');
 var Home = require('./home.jsx');
 var PollApp = require('./poll-app.jsx');
 var Header = require('./header.jsx');
+var AppStore = require('../stores/AppStore.jsx');
+var hashHistory = require('react-router').hashHistory;
+var Link = require('react-router').Link;
+var PollActions = require('../actions/PollActions.jsx');
+
+function getLoginState() {
+  return {
+    loggedIn: AppStore.loginStatus()
+  };
+}
 
 var App = React.createClass({
+
+  getInitialState: function() {
+    return {idToken: '', loggedIn: true};
+  },
+
+  _onChange: function() {
+    this.setState(getLoginState());
+  },
 
   componentWillMount: function() {
 	  this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
       // Set the state with a property that has the token
 	  this.setState({idToken: this.getIdToken()})
+    // AppStore.addChangeListener(this._onChange);
   },
+
+  componentDidMount: function() {
+    AppStore.addChangeListener(this._onChange);
+  },
+
   createLock: function() {
       this.lock = new Auth0Lock(this.props.clientId, this.props.domain);
   },
+
   getIdToken: function() {
     // First, check if there is already a JWT in local storage
     var idToken = localStorage.getItem('id_token');
@@ -25,6 +50,7 @@ var App = React.createClass({
       if (authHash.id_token) {
         idToken = authHash.id_token
         localStorage.setItem('id_token', authHash.id_token);
+        PollActions.logIn();
       }
       if (authHash.error) {
         // Handle any error conditions
@@ -34,17 +60,43 @@ var App = React.createClass({
     }
     return idToken;
   },
+
+  handleLogout: function() {
+    localStorage.removeItem('id_token');
+    App.Actions.toggleLogin();
+    hashHistory.push('/');
+  },
+
+  // _onChange: function() {
+  //   this.setState(getPollState());
+  // },
+
+  showLock: function() {
+    this.lock.show();
+  },
+
   render: function() {
 
-    if (this.state.idToken) {
+    if (this.state.idToken && this.state.loggedIn) {
       return (
         <div>
-          <PollApp idToken={this.state.idToken} lock={this.lock} />
+          <h1>App Logged In</h1>
+          <Header idToken={this.state.idToken} lock={this.lock} />
+
+          {this.props.children}
+
         </div>
+
       );
     } else {
       return ( 
-        <Home lock={this.lock} />
+        <div>
+          <h1>App Logged Out</h1>
+          <Home lock={this.lock} />
+
+          {this.props.children}
+
+        </div>
       );
     }
   }

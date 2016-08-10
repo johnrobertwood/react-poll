@@ -11,16 +11,16 @@ var OptionSelector = React.createClass({
 	},
 
 	componentWillMount: function() {
-		var firebaseRef = firebase.database().ref('reactPoll/pollData');
+		var firebaseRef = firebase.database().ref('pollData');
 	},
 
 	handleDelete: function(key) {
-		var firebaseRef = firebase.database().ref('reactPoll/pollData');
+		var firebaseRef = firebase.database().ref('pollData');
 		firebaseRef.child(key).remove();
 	},
 
 	handleChange: function(e) {
-		var firebaseRef = firebase.database().ref('reactPoll/pollData');
+		var firebaseRef = firebase.database().ref('pollData');
 		var pollIndex = e.target.getAttribute('data-index');
 		var length = this.props.pollData[pollIndex][0].length;
 		var dataArr = this.props.pollData[pollIndex][0];

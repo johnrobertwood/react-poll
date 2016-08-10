@@ -3,10 +3,6 @@ var PieChart = require("react-chartjs").Pie;
 
 var PollPieChart = React.createClass({
 
-  componentWillMount: function() {
-    console.log(this.props.data)
-  },
-
 	componentDidMount: function() {
 		var legend = this.refs.chart.getChart().generateLegend();
 		this.setState({legend: legend});
