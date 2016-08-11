@@ -7,5 +7,6 @@ module.exports = keyMirror({
   LOG_IN: 'LOG_IN',
   LOG_OUT: 'LOG_OUT',
   GET_PROFILE: 'GET_PROFILE',
-  GET_POLLS: 'GET_POLLS'
+  GET_ALL_POLLS: 'GET_ALL_POLLS',
+  GET_USER_POLLS: 'GET_USER_POLLS'
 });

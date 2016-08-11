@@ -15,27 +15,6 @@ var Header = React.createClass({
 		PollActions.logOut();
 	},
 
-    // componentDidMount: function() {
-
-    //   var userRef = firebase.database().ref('users')
-    //   this.bindAsArray(userRef, 'users');
-
-    //   AppStore.addChangeListener(this._onChange);
-
-    //   if (this.props.idToken) {
-    //       this.props.lock.getProfile(this.props.idToken, function (err, profile) {
-    //         if (err) {
-    //           console.log("Error loading the Profile", err);
-    //           return;
-    //         }
-    //         this.setState({profile: profile});
-    //         console.log(profile)
-    //           this.firebaseRefs['users'].push(profile);
-    //       }.bind(this));
-    //   }
-
-    // },
-    
     _onChange: function() {
       console.log("change listener");
     },
@@ -46,10 +25,9 @@ var Header = React.createClass({
     	<header>
     	  <nav>
     	    <ul>
-    	      <li><Link to="/">Home</Link></li>
+    	      <li><Link to="/home">Home</Link></li>
     	      <li><Link to="/mypolls">My Polls</Link></li>
     	      <li><Link to="/addpoll">Add Poll</Link></li>
-    	      <li><Link to="/test">Test!</Link></li>
     	      <li className="login-box" onClick={this.handleLogout}>Sign Out</li>
     	    </ul>
     	  </nav>

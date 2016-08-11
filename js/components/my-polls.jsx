@@ -42,14 +42,10 @@ var MyPolls = React.createClass({
 		      return;
 		    }
 		    this.setState({profile: profile});
-		    PollActions.getPolls(profile.nickname);
+		    PollActions.getUserPolls(profile.nickname);
 		  }.bind(this));
 	  }
 
-	},
-
-	handleDelete: function(delIndex) {
-		updatedPoll = this.state.pollData[delIndex];
 	},
 
   render: function() {

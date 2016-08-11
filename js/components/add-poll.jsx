@@ -11,7 +11,7 @@ var AddPoll = React.createClass({
 	mixins: [ReactFireMixin],
 
 	getInitialState: function() {
-		return {text: '', title: '', loggedIn: true, pollData: [], profile: null, users: {}}
+		return {text: '', loggedIn: true, pollData: [], profile: null, users: {}}
 	},
 
 	componentWillMount: function() {
@@ -25,6 +25,19 @@ var AddPoll = React.createClass({
 	  var userRef = firebase.database().ref('users')
 	  this.bindAsArray(userRef, 'users');
 	  AppStore.addChangeListener(this._onChange);
+
+  	var idToken = localStorage.getItem('id_token');
+  	var firebaseUserData;
+
+    if (idToken) {
+  	  this.lock.getProfile(idToken, function (err, profile) {
+  	    if (err) {
+  	      console.log("Error loading the Profile", err);
+  	      return;
+  	    }
+  	    this.setState({profile: profile});
+  	  }.bind(this));
+    }
 
 	},
 

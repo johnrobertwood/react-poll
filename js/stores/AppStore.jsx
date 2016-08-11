@@ -8,6 +8,8 @@ var loggedIn = true;
 
 var userPolls = [];
 
+var polls = [];
+
 function toggleLogin() {
   loggedIn = !loggedIn;
 }
@@ -20,7 +22,21 @@ function logOut() {
   loggedIn = false;
 }
 
+function setPolls() {
+  polls = [];
+  firebase.database().ref('pollData').once('value', function(snapshot) {
+    var obj = snapshot.val();
+    for (var prop in obj) {
+      polls.push(obj[prop])
+    }
+    AppStore.emitChange();
+  });
+}
+
 function setUserPolls(user) {
+
+  userPolls = [];
+  
   firebase.database().ref('pollData').once('value', function(snapshot) {
 
     var obj = snapshot.val();
@@ -32,15 +48,17 @@ function setUserPolls(user) {
       return poll[1] === user;
     })
     AppStore.emitChange();
-
-  })
+  });
 }
 
 var AppStore = assign({}, EventEmitter.prototype, {
 
   getUserPolls: function(user) {
-
     return userPolls;
+  },
+
+  getPolls: function() {
+    return polls;
   },
 
   loginStatus: function() {
@@ -80,11 +98,14 @@ AppDispatcher.register(function(action){
     AppStore.emitChange();
   }
 
-  if (action.actionType === "GET_POLLS") {
-    setUserPolls(action.user);
-    
-    
+  if (action.actionType === "GET_USER_POLLS") {
+    setUserPolls(action.user); 
   }
+
+  if (action.actionType === "GET_ALL_POLLS") {
+    setPolls();
+  }
+  
   return true;
 });
 
