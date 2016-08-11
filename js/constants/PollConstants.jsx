@@ -6,5 +6,6 @@ module.exports = keyMirror({
   TOGGLE_LOGIN: 'TOGGLE_LOGIN',
   LOG_IN: 'LOG_IN',
   LOG_OUT: 'LOG_OUT',
-  GET_ALL: 'GET_ALL'
+  GET_PROFILE: 'GET_PROFILE',
+  GET_POLLS: 'GET_POLLS'
 });

@@ -2,11 +2,9 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var OptionSelector = require('./option-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
-var browserHistory = require('react-router').browserHistory;
 var PollTextInput = require('./PollTextInput.jsx');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
-var Header = require('./header.jsx');
 
 var AddPoll = React.createClass({
 
@@ -34,24 +32,6 @@ var AddPoll = React.createClass({
 	  console.log("change listener");
 	},
 
-	handleInputTitle: function(e) {
-		this.setState({title: e.target.value});
-	},
-
-	handleInputOptions: function(e) {
-		this.setState({text: e.target.value});
-	},
-
-	handleLogout: function() {
-		localStorage.removeItem('id_token');
-		this.setState({loggedIn: false});
-		browserHistory.push('/');
-	},
-
-	handleDelete: function(delIndex) {
-		updatedPoll = this.state.pollData[delIndex];
-	},
-
 	_onSave: function(text) {
 
 		var parseText = text.split(' ').join('').split(',');
@@ -77,11 +57,6 @@ var AddPoll = React.createClass({
 	},
 
   render: function() {
-  	var FieldGroup = ReactBootstrap.FieldGroup;
-  	var FormGroup = ReactBootstrap.FormGroup;
-  	var FormControl = ReactBootstrap.FormControl;
-  	var ControlLabel = ReactBootstrap.ControlLabel;
-  	var Button = ReactBootstrap.Button;
   	var Row = ReactBootstrap.Row;
   	var Col = ReactBootstrap.Col;
   	var Grid = ReactBootstrap.Grid;

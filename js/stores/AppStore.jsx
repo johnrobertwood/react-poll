@@ -2,31 +2,11 @@ var AppDispatcher = require('../dispatcher/AppDispatcher.jsx');
 var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
 
-// Get a reference to the storage service, which is used to create references in your storage bucket
-var storage = firebase.storage();
-
-// Create a storage reference from our storage service
-var storageRef = storage.ref();
-
 var CHANGE_EVENT = 'change';
 
-var _users = [
-  {name: "John", loginStatus: false}, 
-  {name: "Trump", loginStatus: false}
-];
+var loggedIn = true;
 
-var loggedIn = false;
-
-// function toggleLogin(name) {
-//   console.log(name);
-//   users = _users.map(function(user) {
-//     if (name === user.name) {
-//       user.loginStatus = !user.loginStatus;
-//     }
-//       return user;
-//   });
-//   return users;
-// }
+var userPolls = [];
 
 function toggleLogin() {
   loggedIn = !loggedIn;
@@ -40,8 +20,28 @@ function logOut() {
   loggedIn = false;
 }
 
+function setUserPolls(user) {
+  firebase.database().ref('pollData').once('value', function(snapshot) {
+
+    var obj = snapshot.val();
+    for (var prop in obj) {
+      userPolls.push(obj[prop])
+    }
+
+    userPolls = userPolls.filter(function(poll) {
+      return poll[1] === user;
+    })
+    AppStore.emitChange();
+
+  })
+}
 
 var AppStore = assign({}, EventEmitter.prototype, {
+
+  getUserPolls: function(user) {
+
+    return userPolls;
+  },
 
   loginStatus: function() {
     return loggedIn;
@@ -76,12 +76,20 @@ AppDispatcher.register(function(action){
   }
 
   if (action.actionType === "ADD_ITEM") {
-    console.log(action.item);
-    var firebaseRef = firebase.database().ref('pollData').push(action.item);
+    firebase.database().ref('pollData').push(action.item);
     AppStore.emitChange();
+  }
 
+  if (action.actionType === "GET_POLLS") {
+    setUserPolls(action.user);
+    
+    
   }
   return true;
 });
 
 module.exports = AppStore;
+
+
+
+

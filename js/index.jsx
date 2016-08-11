@@ -1,6 +1,5 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-var ReactBootstrap = require('react-bootstrap');
 var Router = require('react-router').Router;
 var Route = require('react-router').Route; 
 var hashHistory = require('react-router').hashHistory;

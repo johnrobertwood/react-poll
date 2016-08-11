@@ -1,12 +1,10 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-var ReactBootstrap = require('react-bootstrap');
 var Home = require('./home.jsx');
 var PollApp = require('./poll-app.jsx');
 var Header = require('./header.jsx');
 var AppStore = require('../stores/AppStore.jsx');
 var hashHistory = require('react-router').hashHistory;
-var Link = require('react-router').Link;
 var PollActions = require('../actions/PollActions.jsx');
 
 function getLoginState() {
@@ -59,12 +57,6 @@ var App = React.createClass({
       }
     }
     return idToken;
-  },
-
-  handleLogout: function() {
-    localStorage.removeItem('id_token');
-    App.Actions.toggleLogin();
-    hashHistory.push('/');
   },
 
   // _onChange: function() {

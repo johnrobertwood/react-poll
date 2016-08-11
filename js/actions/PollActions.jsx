@@ -26,7 +26,14 @@ var PollActions = {
       actionType: PollConstants.ADD_ITEM,
       item: item
     });
-  }
+  },
+
+  getPolls: function(user) {
+    AppDispatcher.dispatch({
+      actionType: PollConstants.GET_POLLS,
+      user: user
+    });
+  },
 
 }
 

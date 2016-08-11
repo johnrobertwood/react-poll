@@ -2,7 +2,6 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var OptionSelector = require('./option-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
-var browserHistory = require('react-router').browserHistory;
 var PollTextInput = require('./PollTextInput.jsx');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
@@ -13,7 +12,7 @@ var PollApp = React.createClass({
 	mixins: [ReactFireMixin],
 
 	getInitialState: function() {
-		return {text: '', title: '', loggedIn: true, pollData: [], profile: null}
+		return {text: '', loggedIn: true, pollData: [], profile: null}
 	},
 
 	componentWillMount: function() {
@@ -29,39 +28,24 @@ var PollApp = React.createClass({
 
 	  AppStore.addChangeListener(this._onChange);
 
-	  if (this.props.idToken) {
-		  this.props.lock.getProfile(this.props.idToken, function (err, profile) {
+	  var idToken = localStorage.getItem('id_token');
+
+	  if (idToken) {
+		  this.lock.getProfile(idToken, function (err, profile) {
 		    if (err) {
 		      console.log("Error loading the Profile", err);
 		      return;
 		    }
 		    this.setState({profile: profile});
-		    console.log(profile)
-			  this.firebaseRefs['users'].push(profile);
+		    // console.log(profile)
+			  this.firebaseRefs['users'].update(profile);
 		  }.bind(this));
 	  }
+
 	},
 
 	_onChange: function() {
 	  console.log("change listener");
-	},
-
-	handleInputTitle: function(e) {
-		this.setState({title: e.target.value});
-	},
-
-	handleInputOptions: function(e) {
-		this.setState({text: e.target.value});
-	},
-
-	handleLogout: function() {
-		localStorage.removeItem('id_token');
-		this.setState({loggedIn: false});
-		browserHistory.push('/');
-	},
-
-	handleDelete: function(delIndex) {
-		updatedPoll = this.state.pollData[delIndex];
 	},
 
 	_onSave: function(text) {
@@ -80,7 +64,7 @@ var PollApp = React.createClass({
 		var nextText = '';
 		var nextTitle = '';
 		var nickname = this.state.profile.nickname;
-		var nextChart = this.state.pollData.concat([pieData]);
+		var nextChart = this.state.pollData.concat([pieData, nickname]);
 
 		PollActions.addPoll([pieData, nickname]);
 
@@ -89,15 +73,10 @@ var PollApp = React.createClass({
 	},
 
   render: function() {
-  	var FieldGroup = ReactBootstrap.FieldGroup;
-  	var FormGroup = ReactBootstrap.FormGroup;
-  	var FormControl = ReactBootstrap.FormControl;
-  	var ControlLabel = ReactBootstrap.ControlLabel;
-  	var Button = ReactBootstrap.Button;
   	var Row = ReactBootstrap.Row;
   	var Col = ReactBootstrap.Col;
   	var Grid = ReactBootstrap.Grid;
-
+  	console.log(this.state.pollData);
 	    return (
 	    	<div>
 	    	<h2>Poll App</h2>

@@ -7,7 +7,7 @@ var OptionSelector = React.createClass({
 	mixins: [ReactFireMixin],
 
 	getInitialState: function() {
-		return {pollData: this.props.pollData};
+		return {pollData: this.props.pollData}
 	},
 
 	componentWillMount: function() {
@@ -43,6 +43,7 @@ var OptionSelector = React.createClass({
 		var FormControl = ReactBootstrap.FormControl;
 		var Button = ReactBootstrap.Button;
 		var _this = this;
+		console.log(this.props.pollData)
 	  var createItem = function(item, i) {
 	    return <div key={i}>
 	    				<div className="row">
@@ -66,7 +67,7 @@ var OptionSelector = React.createClass({
 						</div>
 	  };
 	  return 	<div>
-							{this.state.pollData.map(createItem, this)}
+							{this.props.pollData.map(createItem, this)}
   					</div>
 	}
 })
