@@ -3,12 +3,6 @@ var PollConstants = require('../constants/PollConstants.jsx');
 
 var PollActions = {
   
-  toggleLogin: function() {
-    AppDispatcher.dispatch({
-      actionType: PollConstants.TOGGLE_LOGIN
-    });
-  },
-
   logIn: function() {
     AppDispatcher.dispatch({
       actionType: PollConstants.LOG_IN
@@ -28,81 +22,24 @@ var PollActions = {
     });
   },
 
-  getPolls: function(user) {
+  getUserPolls: function(user) {
     AppDispatcher.dispatch({
-      actionType: PollConstants.GET_POLLS,
+      actionType: PollConstants.GET_USER_POLLS,
       user: user
     });
   },
 
-}
-
-var TodoActions = {
-
-  /**
-   * @param  {string} text
-   */
-  create: function(text) {
+  getAllPolls: function() {
     AppDispatcher.dispatch({
-      actionType: TodoConstants.TODO_CREATE,
-      text: text
-    });
+      actionType: PollConstants.GET_ALL_POLLS
+    })
   },
 
-  /**
-   * @param  {string} id The ID of the ToDo item
-   * @param  {string} text
-   */
-  updateText: function(id, text) {
+  delPoll: function(key) {
     AppDispatcher.dispatch({
-      actionType: TodoConstants.TODO_UPDATE_TEXT,
-      id: id,
-      text: text
-    });
-  },
-
-  /**
-   * Toggle whether a single ToDo is complete
-   * @param  {object} todo
-   */
-  toggleComplete: function(todo) {
-    var id = todo.id;
-    var actionType = todo.complete ?
-        TodoConstants.TODO_UNDO_COMPLETE :
-        TodoConstants.TODO_COMPLETE;
-
-    AppDispatcher.dispatch({
-      actionType: actionType,
-      id: id
-    });
-  },
-
-  /**
-   * Mark all ToDos as complete
-   */
-  toggleCompleteAll: function() {
-    AppDispatcher.dispatch({
-      actionType: TodoConstants.TODO_TOGGLE_COMPLETE_ALL
-    });
-  },
-
-  /**
-   * @param  {string} id
-   */
-  destroy: function(id) {
-    AppDispatcher.dispatch({
-      actionType: TodoConstants.TODO_DESTROY,
-      id: id
-    });
-  },
-
-  /**
-   * Delete all the completed ToDos
-   */
-  destroyCompleted: function() {
-    AppDispatcher.dispatch({
-      actionType: TodoConstants.TODO_DESTROY_COMPLETED
-    });
+      actionType: PollConstants.DEL_POLL,
+      key: key
+    })
   }
 
 };

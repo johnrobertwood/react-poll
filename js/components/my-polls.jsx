@@ -1,11 +1,12 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-var OptionSelector = require('./option-selector.jsx');
+var MyPollsSelector = require('./my-polls-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
 var PollTextInput = require('./PollTextInput.jsx');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
-var Header = require('./header.jsx');
+var OptionSelector = require('./option-selector.jsx');
+var DeleteButton = require('./delete-button.jsx');
 
 function getPollState() {
   return {
@@ -18,11 +19,7 @@ var MyPolls = React.createClass({
 	mixins: [ReactFireMixin],
 
 	getInitialState: function() {
-		return {pollData: [], profile: null, firebaseUser: null}
-	},
-
-	_onChange: function() {
-		this.setState(getPollState());
+		return getPollState();
 	},
 
 	componentWillMount: function() {
@@ -30,9 +27,8 @@ var MyPolls = React.createClass({
 	},
 
 	componentDidMount: function() {
-
 		var idToken = localStorage.getItem('id_token');
-		var firebaseUserData;
+
 		AppStore.addChangeListener(this._onChange);
 
 	  if (idToken) {
@@ -42,34 +38,38 @@ var MyPolls = React.createClass({
 		      return;
 		    }
 		    this.setState({profile: profile});
-		    PollActions.getPolls(profile.nickname);
+			  PollActions.getUserPolls(this.state.profile.nickname);
 		  }.bind(this));
 	  }
 
+
 	},
 
-	handleDelete: function(delIndex) {
-		updatedPoll = this.state.pollData[delIndex];
+	componentWillUnmount: function() {
+		AppStore.removeChangeListener(this._onChange);
+	},
+
+	_onChange: function() {
+		this.setState(getPollState());
 	},
 
   render: function() {
   	var Row = ReactBootstrap.Row;
   	var Col = ReactBootstrap.Col;
   	var Grid = ReactBootstrap.Grid;
-  	// console.log(this.state.pollData);
-
-    return (
-    	<div>
-    	<h3>My Polls!</h3>
-  		<Grid>
-  			<Row>
-					<Col xs={12} md={4} mdOffset={2}>
-						<OptionSelector pollData={this.state.pollData} />
-					</Col>
-				</Row>
-  		</Grid>
-  		</div>
-    );	
+  	console.log(this.state.pollData);
+	    return (
+	    	<div>
+	    	<h3>My Polls</h3>
+		  		<Grid>
+		  			<Row>
+							<Col xs={12} md={4} mdOffset={2}>
+								<MyPollsSelector pollData={this.state.pollData} loggedIn={true} />
+							</Col>
+						</Row>
+		  		</Grid>
+	  		</div>
+	    );	
   } 
 });
 

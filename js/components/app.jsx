@@ -1,7 +1,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
+var Login = require('./login.jsx');
 var Home = require('./home.jsx');
-var PollApp = require('./poll-app.jsx');
 var Header = require('./header.jsx');
 var AppStore = require('../stores/AppStore.jsx');
 var hashHistory = require('react-router').hashHistory;
@@ -32,6 +32,10 @@ var App = React.createClass({
 
   componentDidMount: function() {
     AppStore.addChangeListener(this._onChange);
+  },
+
+  componentWillUnmount: function() {
+    AppStore.removeChangeListener(this._onChange);
   },
 
   createLock: function() {
@@ -84,7 +88,7 @@ var App = React.createClass({
       return ( 
         <div>
           <h1>App Logged Out</h1>
-          <Home lock={this.lock} />
+          <Login lock={this.lock} />
 
           {this.props.children}
 
