@@ -2,7 +2,6 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var OptionSelector = require('./option-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
-var PollTextInput = require('./PollTextInput.jsx');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
 var Header = require('./header.jsx');

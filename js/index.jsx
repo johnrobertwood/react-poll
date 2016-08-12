@@ -9,13 +9,14 @@ var App = require('./components/app.jsx');
 var Login = require('./components/login.jsx');
 var MyPolls = require('./components/my-polls.jsx');
 var Test = require('./components/test.jsx');
-var AddPoll = require('./components/add-poll2.jsx');
+var AddPoll = require('./components/add-poll.jsx');
 require("../css/style.scss");
 
 
 ReactDOM.render(
   <Router history={hashHistory}>
     <Route path="/" component={App}>
+    	<IndexRoute component={Home} />
 	    <Route path="/addpoll" component={AddPoll} />
 	    <Route path="/mypolls" component={MyPolls} />
 	    <Route path="/home" component={Home} />

@@ -2,7 +2,6 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var HomeSelector = require('./home-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
-var PollTextInput = require('./PollTextInput.jsx');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
 
@@ -57,10 +56,9 @@ var PollApp = React.createClass({
   	var Grid = ReactBootstrap.Grid;
 	    return (
 	    	<div>
-	    	<h3>Home</h3>
 	  		<Grid>
 	  			<Row>
-						<Col xs={12} md={4} mdOffset={2}>
+						<Col xs={12} md={6} mdOffset={3}>
 							<HomeSelector pollData={this.state.pollData} />
 						</Col>
 					</Row>

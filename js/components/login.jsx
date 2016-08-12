@@ -1,5 +1,6 @@
 var React = require('react');
 var Link = require('react-router').Link;
+var Button = require('react-bootstrap').Button;
 var Login = React.createClass({
 
   componentWillMount: function() {
@@ -16,7 +17,7 @@ var Login = React.createClass({
 			  <nav>
 			    <ul>
 			      <li><Link to="/">Home</Link></li>
-			      <li className="login-box" onClick={this.showLock}>Sign In</li>
+			      <li className="login-box" onClick={this.showLock}><Button>Sign In</Button></li>
 			    </ul>
 			  </nav>
 			</header>

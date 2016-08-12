@@ -3,6 +3,7 @@ var ReactBootstrap = require('react-bootstrap');
 var PollPieChart = require('./pie-chart.jsx');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
+var HomeModal = require('./home-modal.jsx');
 
 var HomeSelector = React.createClass({
 
@@ -53,24 +54,12 @@ var HomeSelector = React.createClass({
 		var _this = this;
 		// console.log(this.props.pollData)
 	  var createItem = function(item, i) {
-	    return <Panel key={i} eventKey={i+1}>
-	    				<div className="row">
-		    				<FormGroup controlId="formControlsSelect">
-			    				<FormControl 
-			    				  componentClass="select" 
-			    				  key={i} data-index={i} 
-			    				  data-key={item['.key']} 
-			    				  onChange={this.handleChange} 
-			    				  defaultValue="default">
-			    					<option disabled value="default">{this.props.title}</option>
-			    						{item[0].map(function(subitem, i) {
-			    							return <option key={i} value={subitem.label}>{subitem.label}</option>}, this)}
-			    				</FormControl>
-		    				</FormGroup>
-								<PollPieChart data={item[0]} />
-	    				</div>
-							<hr />
-						</Panel>
+	    return <HomeModal 
+	    				item={item} 
+	    				loggedIn={true} 
+	    				i={i} 
+	    				key={i} 
+	    				pollData={this.props.pollData} />
 	  };
 	  return 	<PanelGroup defaultActiveKey="1">
 							{this.props.pollData.map(createItem, this)}

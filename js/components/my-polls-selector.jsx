@@ -3,6 +3,7 @@ var ReactBootstrap = require('react-bootstrap');
 var PollPieChart = require('./pie-chart.jsx');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
+var MyPollsModal = require('./my-polls-modal.jsx');
 
 var MyPollsSelector = React.createClass({
 
@@ -10,10 +11,6 @@ var MyPollsSelector = React.createClass({
 
 	getInitialState: function() {
 		return {pollData: this.props.pollData}
-	},
-
-	componentWillMount: function() {
-		var firebaseRef = firebase.database().ref('pollData');
 	},
 
 	handleDelete: function(key) {
@@ -48,26 +45,12 @@ var MyPollsSelector = React.createClass({
 		// console.log(this.props.pollData)
 	  var createItem = function(item, i) {
 	  	console.log(item);
-	    return <div key={i}>
-	    				<div className="row">
-		    				<FormGroup controlId="formControlsSelect">
-		    					<ControlLabel>{item[2]}</ControlLabel>
-			    				<FormControl 
-			    				  componentClass="select" 
-			    				  key={i} data-index={i} 
-			    				  data-key={item['.key']} 
-			    				  onChange={this.handleChange} 
-			    				  defaultValue="default">
-			    					<option disabled value="default">{this.props.title}</option>
-			    						{item[0].map(function(subitem, i) {
-			    							return <option key={i} value={subitem.label}>{subitem.label}</option>}, this)}
-			    				</FormControl>
-		    				</FormGroup>
-								<PollPieChart data={item[0]} />
-								<Button onClick={_this.handleDelete.bind(null, item['.key'])} bsStyle="danger">Delete</Button>
-	    				</div>
-							<hr />
-						</div>
+	    return <MyPollsModal 
+	    				item={item} 
+	    				loggedIn={true} 
+	    				i={i} 
+	    				key={i} 
+	    				pollData={this.props.pollData} />
 	  };
 	  return 	<div>
 							{this.props.pollData.map(createItem, this)}

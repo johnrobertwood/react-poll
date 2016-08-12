@@ -1,19 +1,17 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-var MyPollsSelector = require('./my-polls-selector.jsx');
+var HomeSelector = require('./home-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
-var OptionSelector = require('./option-selector.jsx');
-var ExampleModal = require('./modal.jsx');
 
 function getPollState() {
   return {
-    pollData: AppStore.getUserPolls()
+    pollData: AppStore.getAllPolls()
   };
 }
 
-var MyPolls = React.createClass({
+var Login = React.createClass({
 
 	mixins: [ReactFireMixin],
 
@@ -26,9 +24,9 @@ var MyPolls = React.createClass({
 	},
 
 	componentDidMount: function() {
-		var idToken = localStorage.getItem('id_token');
+	  var idToken = localStorage.getItem('id_token');
 
-		AppStore.addChangeListener(this._onChange);
+	  AppStore.addChangeListener(this._onChange);
 
 	  if (idToken) {
 		  this.lock.getProfile(idToken, function (err, profile) {
@@ -37,14 +35,19 @@ var MyPolls = React.createClass({
 		      return;
 		    }
 		    this.setState({profile: profile});
-			  PollActions.getUserPolls(this.state.profile.nickname);
 		  }.bind(this));
 	  }
+
+	  PollActions.getAllPolls();
 
 	},
 
 	componentWillUnmount: function() {
 		AppStore.removeChangeListener(this._onChange);
+	},
+
+	showLock: function() {
+	  this.lock.show();
 	},
 
 	_onChange: function() {
@@ -55,19 +58,30 @@ var MyPolls = React.createClass({
   	var Row = ReactBootstrap.Row;
   	var Col = ReactBootstrap.Col;
   	var Grid = ReactBootstrap.Grid;
+  	var Link = require('react-router').Link;
 	    return (
 	    	<div>
-		  		<Grid>
-		  			<Row>
-							<Col xs={12} md={6} mdOffset={3}>
-								<MyPollsSelector pollData={this.state.pollData} loggedIn={true} />
-								
-							</Col>
-						</Row>
-		  		</Grid>
+	    	<div className="login-box">
+	    	<header>
+	    	  <nav>
+	    	    <ul>
+	    	      <li><Link to="/">Home</Link></li>
+	    	      <li className="login-box" onClick={this.showLock}>Sign In</li>
+	    	    </ul>
+	    	  </nav>
+	    	</header>
+	    	</div>
+	    	<h3>Home</h3>
+	  		<Grid>
+	  			<Row>
+						<Col xs={12} md={4} mdOffset={2}>
+							<HomeSelector pollData={this.state.pollData} />
+						</Col>
+					</Row>
+	  		</Grid>
 	  		</div>
 	    );	
   } 
 });
 
-module.exports = MyPolls;
+module.exports = Login;

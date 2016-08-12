@@ -76,7 +76,6 @@ var App = React.createClass({
     if (this.state.idToken && this.state.loggedIn) {
       return (
         <div>
-          <h1>App Logged In</h1>
           <Header idToken={this.state.idToken} lock={this.lock} />
 
           {this.props.children}
@@ -87,7 +86,6 @@ var App = React.createClass({
     } else {
       return ( 
         <div>
-          <h1>App Logged Out</h1>
           <Login lock={this.lock} />
 
           {this.props.children}
