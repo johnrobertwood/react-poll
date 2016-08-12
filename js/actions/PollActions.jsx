@@ -3,12 +3,6 @@ var PollConstants = require('../constants/PollConstants.jsx');
 
 var PollActions = {
   
-  toggleLogin: function() {
-    AppDispatcher.dispatch({
-      actionType: PollConstants.TOGGLE_LOGIN
-    });
-  },
-
   logIn: function() {
     AppDispatcher.dispatch({
       actionType: PollConstants.LOG_IN
@@ -38,6 +32,13 @@ var PollActions = {
   getAllPolls: function() {
     AppDispatcher.dispatch({
       actionType: PollConstants.GET_ALL_POLLS
+    })
+  },
+
+  delPoll: function(key) {
+    AppDispatcher.dispatch({
+      actionType: PollConstants.DEL_POLL,
+      key: key
     })
   }
 

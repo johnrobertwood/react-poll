@@ -1,34 +1,33 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-var OptionSelector = require('./option-selector.jsx');
+var HomeSelector = require('./home-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
 var PollTextInput = require('./PollTextInput.jsx');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
-var Header = require('./header.jsx');
+
+function getPollState() {
+  return {
+    pollData: AppStore.getAllPolls()
+  };
+}
 
 var PollApp = React.createClass({
 
 	mixins: [ReactFireMixin],
 
 	getInitialState: function() {
-		return {text: '', loggedIn: true, pollData: [], profile: null}
+		return getPollState();
 	},
 
 	componentWillMount: function() {
 		this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
-		var firebaseRef = firebase.database().ref('pollData');
-		this.bindAsArray(firebaseRef, 'pollData');
 	},
 
 	componentDidMount: function() {
-
-	  var userRef = firebase.database().ref('users')
-	  this.bindAsArray(userRef, 'users');
+	  var idToken = localStorage.getItem('id_token');
 
 	  AppStore.addChangeListener(this._onChange);
-
-	  var idToken = localStorage.getItem('id_token');
 
 	  if (idToken) {
 		  this.lock.getProfile(idToken, function (err, profile) {
@@ -37,53 +36,32 @@ var PollApp = React.createClass({
 		      return;
 		    }
 		    this.setState({profile: profile});
-		    // console.log(profile)
-			  this.firebaseRefs['users'].update(profile);
 		  }.bind(this));
 	  }
 
+	  PollActions.getAllPolls();
+
+	},
+
+	componentWillUnmount: function() {
+		AppStore.removeChangeListener(this._onChange);
 	},
 
 	_onChange: function() {
-	  console.log("change listener");
-	},
-
-	_onSave: function(text) {
-
-		var parseText = text.split(' ').join('').split(',');
-		var choices = parseText.map(function(item) {return [item];});
-		var initialData = choices.map(function(item) {return 0;});
-		var pieData = parseText.map(function(item) {
-			var obj = {}
-			obj.label = item;
-			obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
-			  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
-			obj.value = 0;
-			return obj;
-		})
-		var nextText = '';
-		var nextTitle = '';
-		var nickname = this.state.profile.nickname;
-		var nextChart = this.state.pollData.concat([pieData, nickname]);
-
-		PollActions.addPoll([pieData, nickname]);
-
-		this.setState({text: nextText, title: nextTitle});
-
+		this.setState(getPollState());
 	},
 
   render: function() {
   	var Row = ReactBootstrap.Row;
   	var Col = ReactBootstrap.Col;
   	var Grid = ReactBootstrap.Grid;
-  	console.log(this.state.pollData);
 	    return (
 	    	<div>
-	    	<h2>Home</h2>
+	    	<h3>Home</h3>
 	  		<Grid>
 	  			<Row>
 						<Col xs={12} md={4} mdOffset={2}>
-							<OptionSelector pollData={this.state.pollData} />
+							<HomeSelector pollData={this.state.pollData} />
 						</Col>
 					</Row>
 	  		</Grid>

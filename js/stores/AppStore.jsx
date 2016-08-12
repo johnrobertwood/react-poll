@@ -10,10 +10,6 @@ var userPolls = [];
 
 var polls = [];
 
-function toggleLogin() {
-  loggedIn = !loggedIn;
-}
-
 function logIn() {
   loggedIn = true;
 }
@@ -22,33 +18,53 @@ function logOut() {
   loggedIn = false;
 }
 
-function setPolls() {
+function getAllPolls() {
   polls = [];
   firebase.database().ref('pollData').once('value', function(snapshot) {
     var obj = snapshot.val();
     for (var prop in obj) {
-      polls.push(obj[prop])
+      item = [];
+      item.push(obj[prop][0])
+      item[1] = obj[prop][1] 
+      item[2] = obj[prop][2]
+      item[".key"] = prop;
+      polls.push(item);
     }
-    AppStore.emitChange();
+
+    AppStore.emitChange()
   });
 }
 
-function setUserPolls(user) {
-
+function getUserPolls(user) {
   userPolls = [];
-  
   firebase.database().ref('pollData').once('value', function(snapshot) {
-
     var obj = snapshot.val();
+
     for (var prop in obj) {
-      userPolls.push(obj[prop])
+      item = [];
+      item.push(obj[prop][0])
+      item[1] = obj[prop][1] 
+      item[2] = obj[prop][2]
+      item[".key"] = prop;
+      userPolls.push(item);
     }
 
     userPolls = userPolls.filter(function(poll) {
       return poll[1] === user;
     })
+
     AppStore.emitChange();
   });
+
+}
+
+function delPoll(key) {
+
+  var firebaseRef = firebase.database().ref('pollData');
+  firebaseRef.child(key).set(null, function() {
+    AppStore.emitChange();
+  })
+
 }
 
 var AppStore = assign({}, EventEmitter.prototype, {
@@ -57,7 +73,7 @@ var AppStore = assign({}, EventEmitter.prototype, {
     return userPolls;
   },
 
-  getPolls: function() {
+  getAllPolls: function() {
     return polls;
   },
 
@@ -71,7 +87,11 @@ var AppStore = assign({}, EventEmitter.prototype, {
 
   addChangeListener: function(callback) {
     this.on(CHANGE_EVENT, callback);
-  }
+  },
+
+  removeChangeListener: function(callback) {
+    this.removeListener(CHANGE_EVENT, callback);
+  } 
   
 });
 
@@ -88,22 +108,23 @@ AppDispatcher.register(function(action){
     AppStore.emitChange();
   }
 
-  if (action.actionType === "TOGGLE_LOGIN") {
-    toggleLogin();
-    AppStore.emitChange();
-  }
-
   if (action.actionType === "ADD_ITEM") {
     firebase.database().ref('pollData').push(action.item);
     AppStore.emitChange();
   }
 
   if (action.actionType === "GET_USER_POLLS") {
-    setUserPolls(action.user); 
+
+    getUserPolls(action.user); 
   }
 
   if (action.actionType === "GET_ALL_POLLS") {
-    setPolls();
+    getAllPolls();
+  }
+
+  if (action.actionType === "DEL_POLL") {
+    delPoll(action.key);
+    AppStore.emitChange();
   }
   
   return true;

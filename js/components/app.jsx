@@ -34,6 +34,10 @@ var App = React.createClass({
     AppStore.addChangeListener(this._onChange);
   },
 
+  componentWillUnmount: function() {
+    AppStore.removeChangeListener(this._onChange);
+  },
+
   createLock: function() {
       this.lock = new Auth0Lock(this.props.clientId, this.props.domain);
   },

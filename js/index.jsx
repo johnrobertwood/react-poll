@@ -9,7 +9,7 @@ var App = require('./components/app.jsx');
 var Login = require('./components/login.jsx');
 var MyPolls = require('./components/my-polls.jsx');
 var Test = require('./components/test.jsx');
-var AddPoll = require('./components/add-poll.jsx');
+var AddPoll = require('./components/add-poll2.jsx');
 require("../css/style.scss");
 
 
