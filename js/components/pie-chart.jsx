@@ -38,10 +38,10 @@ var PollPieChart = React.createClass({
   	    animationEasing : "easeOutBounce",
 
   	    //Boolean - Whether we animate the rotation of the Doughnut
-  	    animateRotate : true,
+  	    animateRotate : false,
 
   	    //Boolean - Whether we animate scaling the Doughnut from the centre
-  	    animateScale : false
+  	    animateScale : true
   	}
 		 	
     return (

@@ -47,14 +47,15 @@ var HomeSelector = React.createClass({
 		var FormGroup = ReactBootstrap.FormGroup;
 		var ControlLabel = ReactBootstrap.ControlLabel;
 		var FormControl = ReactBootstrap.FormControl;
+		var PanelGroup = ReactBootstrap.PanelGroup;
+		var Panel = ReactBootstrap.Panel;
 		var Button = ReactBootstrap.Button;
 		var _this = this;
 		// console.log(this.props.pollData)
 	  var createItem = function(item, i) {
-	    return <div key={i}>
+	    return <Panel key={i} eventKey={i+1}>
 	    				<div className="row">
 		    				<FormGroup controlId="formControlsSelect">
-		    					<ControlLabel>Vote</ControlLabel>
 			    				<FormControl 
 			    				  componentClass="select" 
 			    				  key={i} data-index={i} 
@@ -69,11 +70,11 @@ var HomeSelector = React.createClass({
 								<PollPieChart data={item[0]} />
 	    				</div>
 							<hr />
-						</div>
+						</Panel>
 	  };
-	  return 	<div>
+	  return 	<PanelGroup defaultActiveKey="1">
 							{this.props.pollData.map(createItem, this)}
-  					</div>
+  					</PanelGroup>
 	}
 })
 

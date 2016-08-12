@@ -47,10 +47,11 @@ var MyPollsSelector = React.createClass({
 		var _this = this;
 		// console.log(this.props.pollData)
 	  var createItem = function(item, i) {
+	  	console.log(item);
 	    return <div key={i}>
 	    				<div className="row">
 		    				<FormGroup controlId="formControlsSelect">
-		    					<ControlLabel>Vote</ControlLabel>
+		    					<ControlLabel>{item[2]}</ControlLabel>
 			    				<FormControl 
 			    				  componentClass="select" 
 			    				  key={i} data-index={i} 

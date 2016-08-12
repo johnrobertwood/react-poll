@@ -26,6 +26,7 @@ function getAllPolls() {
       item = [];
       item.push(obj[prop][0])
       item[1] = obj[prop][1] 
+      item[2] = obj[prop][2]
       item[".key"] = prop;
       polls.push(item);
     }
@@ -43,6 +44,7 @@ function getUserPolls(user) {
       item = [];
       item.push(obj[prop][0])
       item[1] = obj[prop][1] 
+      item[2] = obj[prop][2]
       item[".key"] = prop;
       userPolls.push(item);
     }
