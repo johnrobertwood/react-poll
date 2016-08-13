@@ -38,16 +38,16 @@ var PollPieChart = React.createClass({
   	    animationEasing : "easeOutBounce",
 
   	    //Boolean - Whether we animate the rotation of the Doughnut
-  	    animateRotate : false,
+  	    animateRotate : true,
 
   	    //Boolean - Whether we animate scaling the Doughnut from the centre
   	    animateScale : true
   	}
 		 	
     return (
-    	<div>
-	    	<PieChart data={this.props.data} options={chartOptions} ref="chart"/>
-	    	<div dangerouslySetInnerHTML={{ __html: legend }} />
+    	<div className="chart">
+	    	<div className="legend" dangerouslySetInnerHTML={{ __html: legend }} />
+        <PieChart data={this.props.data} options={chartOptions} ref="chart"/>
 	    </div>
     )
   }

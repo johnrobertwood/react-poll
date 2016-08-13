@@ -102,10 +102,10 @@ var AddPoll = React.createClass({
 
 	    return (
 	    	<div>
-	    	<h2>Poll App</h2>
 	  		<Grid>
 	  			<Row>
-						<Col xs={12} md={3}>
+						<Col xs={10} md={6} xsOffset={1} mdOffset={3}>
+				    	<h2>Poll App</h2>
 			  			<form onSubmit={this.handleSubmit}>
 				  			<FormGroup controlId="formControlsText">
 				  				<ControlLabel>Poll Title</ControlLabel>
@@ -117,7 +117,7 @@ var AddPoll = React.createClass({
 				  				 required />
 			  				</FormGroup>
 								<FormGroup controlId="formControlsTextarea">
-				  				<ControlLabel>Choices (separated by commas)</ControlLabel>
+				  				<ControlLabel>Options (separated by commas)</ControlLabel>
 				  				<FormControl 
 				  				 componentClass="textarea" 
 				  				 rows="4" 
@@ -126,7 +126,7 @@ var AddPoll = React.createClass({
 				  				 placeholder="Options" 
 				  				 required/>
 								</FormGroup>
-			  				<Button type="submit">Add Poll</Button>
+			  				<Button type="submit" bsStyle="primary" block>Add Poll</Button>
 			  			</form>
 	  				</Col>
 					</Row>

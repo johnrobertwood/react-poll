@@ -53,7 +53,7 @@ var ExampleModal = React.createClass({
     var _this = this;
     return (
       <div>
-        <Button bsStyle="primary" bsSize="large" onClick={this.open}>
+        <Button bsStyle="primary" bsSize="large" onClick={this.open} block>
           {this.props.item[2]}
         </Button>
 
@@ -79,14 +79,13 @@ var ExampleModal = React.createClass({
                     </FormControl>
                   </FormGroup>
                   <PollPieChart data={this.props.item[0]} />
-                  <Button onClick={_this.handleDelete.bind(null, this.props.item['.key'])} bsStyle="danger">Delete</Button>
+                  <Button onClick={_this.handleDelete.bind(null, this.props.item['.key'])} bsStyle="danger" block>Delete</Button>
                 </div>
-                <hr />
               </div>
             
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={this.close}>Close</Button>
+            <Button onClick={this.close} bsStyle="info" block>Close</Button>
           </Modal.Footer>
         </Modal>
       </div>

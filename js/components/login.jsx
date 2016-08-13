@@ -8,7 +8,7 @@ var Login = React.createClass({
   },
 	showLock: function() {
 	  this.lock.show();
-	},
+  },
 
 	render: function() {
 		return (

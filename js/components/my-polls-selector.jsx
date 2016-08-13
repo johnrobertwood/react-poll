@@ -42,9 +42,7 @@ var MyPollsSelector = React.createClass({
 		var FormControl = ReactBootstrap.FormControl;
 		var Button = ReactBootstrap.Button;
 		var _this = this;
-		// console.log(this.props.pollData)
 	  var createItem = function(item, i) {
-	  	console.log(item);
 	    return <MyPollsModal 
 	    				item={item} 
 	    				loggedIn={true} 

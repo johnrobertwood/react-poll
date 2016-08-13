@@ -85,7 +85,7 @@ var ExampleModal = React.createClass({
             
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={this.close}>Close</Button>
+            <Button onClick={this.close} bsStyle="info" block>Close</Button>
           </Modal.Footer>
         </Modal>
       </div>
