@@ -34,7 +34,7 @@
 /******/ 	__webpack_require__.c = installedModules;
 
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "/";
+/******/ 	__webpack_require__.p = "/js";
 
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(0);
@@ -66,6 +66,7 @@
 		    React.createElement(Route, {path: "/addpoll", component: AddPoll}), 
 		    React.createElement(Route, {path: "/mypolls", component: MyPolls}), 
 		    React.createElement(Route, {path: "/home", component: Home}), 
+	      React.createElement(Route, {path: "/users/:userName", component: Test}), 
 	      React.createElement(Route, {path: "*", component: Home})
 	    )
 	  ),
@@ -45974,16 +45975,16 @@
 	  	    animationEasing : "easeOutBounce",
 
 	  	    //Boolean - Whether we animate the rotation of the Doughnut
-	  	    animateRotate : false,
+	  	    animateRotate : true,
 
 	  	    //Boolean - Whether we animate scaling the Doughnut from the centre
 	  	    animateScale : true
 	  	}
 			 	
 	    return (
-	    	React.createElement("div", null, 
-		    	React.createElement(PieChart, {data: this.props.data, options: chartOptions, ref: "chart"}), 
-		    	React.createElement("div", {dangerouslySetInnerHTML: { __html: legend}})
+	    	React.createElement("div", {className: "chart"}, 
+		    	React.createElement("div", {className: "legend", dangerouslySetInnerHTML: { __html: legend}}), 
+	        React.createElement(PieChart, {data: this.props.data, options: chartOptions, ref: "chart"})
 		    )
 	    )
 	  }
@@ -50952,7 +50953,7 @@
 	            
 	          ), 
 	          React.createElement(Modal.Footer, null, 
-	            React.createElement(Button, {onClick: this.close}, "Close")
+	            React.createElement(Button, {onClick: this.close, bsStyle: "info", block: true}, "Close")
 	          )
 	        )
 	      )
@@ -51078,46 +51079,9 @@
 
 	  componentWillMount: function() {
 		  this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
-		  this.auth0 = new Auth0({ domain : 'woodjohn.auth0.com', clientID: 'lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs'});
 	  },
 		showLock: function() {
-		  // this.lock.show({}, function());
-
-	    this.lock.show({}, function(err, profile, id_token) {
-	        // If the login is successful, store the profile data in localstorage
-	        localStorage.setItem('profile', JSON.stringify(profile));
-
-	        // Set the options to retreive a firebase delegation token
-	        var options = {
-	          id_token : id_token,
-	          api : 'firebase',
-	          scope : 'openid name email displayName',
-	          target: 'lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs'
-	        };
-
-	        // Make a call to the Auth0 '/delegate' 
-	        auth0.getDelegationToken(options, function(err, result) {
-	          if(!err) {
-	            // Exchange the delegate token for a Firebase auth token
-	            firebase.auth().signInWithCustomToken(result.id_token).catch(function(error) {
-	              console.log(error);
-	            });
-	          }
-	        });
-	      }, function() {
-	        // Error callback
-	      });
-	  },
-
-	  // Finally, we'll implement a logout function to allow the user
-	  // to logout once they are done creating stories
-	  logout: function() {
-	    localStorage.removeItem('profile');
-	    firebase.auth().signOut().then(function() {
-	      console.log("Signout Successful")
-	    }, function(error) {
-	      console.log(error);
-	    });
+		  this.lock.show();
 	  },
 
 		render: function() {
@@ -51154,27 +51118,34 @@
 
 		mixins: [ReactFireMixin],
 
-		// handleLogout: function() {
-		// 	localStorage.removeItem('id_token');
-		// 	hashHistory.push('/');
-		// 	PollActions.logOut();
-		// },
+	  getInitialState: function() {
+	    return {profile: {}}  
+	  },
 
-	    handleLogout: function() {
-	      localStorage.removeItem('profile');
-	      localStorage.removeItem('id_token');
-	      hashHistory.push('/');
-	      PollActions.logOut();
-	      firebase.auth().signOut().then(function() {
-	        console.log("Signout Successful")
-	      }, function(error) {
-	        console.log(error);
-	      });
-	    },
+	  componentWillMount: function() {
+	    this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
+	  },
 
-	    _onChange: function() {
-	      console.log("change listener");
-	    },
+	  componentDidMount: function() {
+	    var idToken = localStorage.getItem('id_token');
+
+	    if (idToken) {
+	      this.lock.getProfile(idToken, function (err, profile) {
+	        if (err) {
+	          console.log("Error loading the Profile", err);
+	          return;
+	        }
+	        this.setState({profile: profile});
+	      }.bind(this));
+	    }
+
+	  },
+
+		handleLogout: function() {
+			localStorage.removeItem('id_token');
+			hashHistory.push('/');
+			PollActions.logOut();
+		},
 
 	  render: function() {
 	    return (
@@ -51182,9 +51153,10 @@
 	    	React.createElement("header", null, 
 	    	  React.createElement("nav", null, 
 	    	    React.createElement("ul", null, 
-	    	      React.createElement("li", null, React.createElement(Link, {to: "/home"}, "Home")), 
-	    	      React.createElement("li", null, React.createElement(Link, {to: "/mypolls"}, "My Polls")), 
-	    	      React.createElement("li", null, React.createElement(Link, {to: "/addpoll"}, "Add Poll")), 
+	    	      React.createElement("li", null, React.createElement(Link, {to: "/home", activeClassName: "active"}, "Home")), 
+	    	      React.createElement("li", null, React.createElement(Link, {to: "/mypolls", activeClassName: "active"}, "My Polls")), 
+	    	      React.createElement("li", null, React.createElement(Link, {to: "/addpoll", activeClassName: "active"}, "Add Poll")), 
+	            React.createElement("li", null, React.createElement(Link, {to: `/users/${this.state.profile.nickname}`}, "User Polls")), 
 	    	      React.createElement("li", {className: "login-box", onClick: this.handleLogout}, React.createElement(Button, null, "Sign Out"))
 	    	    )
 	    	  )
@@ -51423,14 +51395,13 @@
 	                    )
 	                  ), 
 	                  React.createElement(PollPieChart, {data: this.props.item[0]}), 
-	                  React.createElement(Button, {onClick: _this.handleDelete.bind(null, this.props.item['.key']), bsStyle: "danger"}, "Delete")
-	                ), 
-	                React.createElement("hr", null)
+	                  React.createElement(Button, {onClick: _this.handleDelete.bind(null, this.props.item['.key']), bsStyle: "danger", block: true}, "Delete")
+	                )
 	              )
 	            
 	          ), 
 	          React.createElement(Modal.Footer, null, 
-	            React.createElement(Button, {onClick: this.close}, "Close")
+	            React.createElement(Button, {onClick: this.close, bsStyle: "info", block: true}, "Close")
 	          )
 	        )
 	      )
@@ -51622,97 +51593,14 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
-	var ReactDOM = __webpack_require__(35);
-	var OptionSelector = __webpack_require__(518);
-	var ReactBootstrap = __webpack_require__(240);
-	var PollActions = __webpack_require__(502);
-	var AppStore = __webpack_require__(509);
-	var Header = __webpack_require__(514);
-
-	function getPollState() {
-	  return {
-	    loggedIn: AppStore.getUserPolls()
-	  };
-	}
 
 	var Test = React.createClass({displayName: "Test",
 
-		mixins: [ReactFireMixin],
-
-		getInitialState: function() {
-			return {pollData: [], profile: null, firebaseUser: null}
-		},
-
-		componentWillMount: function() {
-			this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
-		},
-
-		componentDidMount: function() {
-
-			var idToken = localStorage.getItem('id_token');
-			var userRef = firebase.database().ref('users');
-			var pollRef = firebase.database().ref('pollData');
-			this.bindAsArray(userRef, 'users');
-			var firebaseUserData;
-			// this.bindAsArray(pollData, 'pollData');
-		  if (idToken) {
-			  this.lock.getProfile(idToken, function (err, profile) {
-			    if (err) {
-			      console.log("Error loading the Profile", err);
-			      return;
-			    }
-			    this.setState({profile: profile});
-			    this.updatePollData();
-					PollActions.getPolls(profile.nickname);
-			  }.bind(this));
-		  }
-
-			pollRef.once('value', function(snapshot) {
-				this.setState({firebaseUser: snapshot.val()});
-				this.updatePollData();
-			}.bind(this));
-
-
-			AppStore.addChangeListener(this._onChange);
-
-		},
-
-		updatePollData: function() {
-			var userPolls;
-			if (this.state.pollData.length && this.state.profile) {
-				var nickname = this.state.profile.nickname;
-				userPolls = this.state.pollData.filter(function(poll) {
-					return poll[1] === nickname;
-				})
-
-				this.setState({pollData: userPolls});
-
-			}
-		},
-
-		_onChange: function() {
-			this.setState(getPollState());
-		},
-
-		handleDelete: function(delIndex) {
-			updatedPoll = this.state.pollData[delIndex];
-		},
-
 	  render: function() {
-	  	var Row = ReactBootstrap.Row;
-	  	var Col = ReactBootstrap.Col;
-	  	var Grid = ReactBootstrap.Grid;
 
 		    return (
 		    	React.createElement("div", null, 
-		    	React.createElement("h3", null, "My Polls"), 
-		  		React.createElement(Grid, null, 
-		  			React.createElement(Row, null, 
-							React.createElement(Col, {xs: 12, md: 4, mdOffset: 2}, 
-								React.createElement(OptionSelector, {pollData: this.state.pollData})
-							)
-						)
-		  		)
+		    		React.createElement("h3", null, this.props.params.userName)
 		  		)
 		    );	
 	  } 
@@ -51830,7 +51718,7 @@
 		    	React.createElement("div", null, 
 		  		React.createElement(Grid, null, 
 		  			React.createElement(Row, null, 
-							React.createElement(Col, {sm: 12, md: 4, mdOffset: 4}, 
+							React.createElement(Col, {xs: 10, md: 6, xsOffset: 1, mdOffset: 3}, 
 					    	React.createElement("h2", null, "Poll App"), 
 				  			React.createElement("form", {onSubmit: this.handleSubmit}, 
 					  			React.createElement(FormGroup, {controlId: "formControlsText"}, 
@@ -51843,7 +51731,7 @@
 					  				 required: true})
 				  				), 
 									React.createElement(FormGroup, {controlId: "formControlsTextarea"}, 
-					  				React.createElement(ControlLabel, null, "Choices (separated by commas)"), 
+					  				React.createElement(ControlLabel, null, "Options (separated by commas)"), 
 					  				React.createElement(FormControl, {
 					  				 componentClass: "textarea", 
 					  				 rows: "4", 
@@ -51852,7 +51740,7 @@
 					  				 placeholder: "Options", 
 					  				 required: true})
 									), 
-				  				React.createElement(Button, {type: "submit"}, "Add Poll")
+				  				React.createElement(Button, {type: "submit", bsStyle: "primary", block: true}, "Add Poll")
 				  			)
 		  				)
 						)
@@ -51899,7 +51787,7 @@
 
 
 	// module
-	exports.push([module.id, "ul.pie-legend {\n  text-align: center;\n  list-style: none;\n  padding: 30px 0; }\n\nheader {\n  margin-bottom: 40px; }\n\n.pie-legend li {\n  display: inline-block; }\n\n.pie-legend span {\n  padding: 10px; }\n\nspan.pie-legend-icon {\n  margin: 5px; }\n\nnav ul li {\n  display: inline-block;\n  margin: 10px; }\n\n#new-todo {\n  padding: 20px; }\n", ""]);
+	exports.push([module.id, "ul.pie-legend {\n  text-align: center;\n  list-style: none;\n  padding: 30px 0; }\n\nheader {\n  margin-bottom: 40px; }\n\n.active {\n  color: #000; }\n\na:hover, a:active, a:visited, a:focus {\n  text-decoration: none; }\n\n.pie-legend li {\n  display: inline-block; }\n\n.pie-legend span {\n  padding: 10px; }\n\nspan.pie-legend-icon {\n  margin: 5px; }\n\nnav ul li {\n  display: inline-block;\n  margin: 10px; }\n\n#new-todo {\n  padding: 20px; }\n\ndiv.modal-header {\n  text-align: center; }\n\ndiv.modal-content {\n  padding-left: 30px;\n  padding-right: 30px; }\n\n.chart {\n  display: flex;\n  justify-content: center; }\n\n.pie-legend {\n  display: flex;\n  flex-direction: column; }\n\n.pie-legend li {\n  margin-top: 20px;\n  text-align: left; }\n\ndiv.chart {\n  margin-bottom: 20px; }\n\ndiv.modal-footer {\n  padding-left: 0;\n  padding-right: 0; }\n\n@media (max-width: 500px) {\n  .chart {\n    display: flex;\n    flex-direction: column-reverse; }\n  .legend {\n    margin: 0 auto; } }\n", ""]);
 
 	// exports
 

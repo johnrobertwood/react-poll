@@ -3,7 +3,6 @@ var MyPollsSelector = require('./my-polls-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
-var OptionSelector = require('./option-selector.jsx');
 
 function getPollState() {
   return {
@@ -11,34 +10,15 @@ function getPollState() {
   };
 }
 
-var MyPolls = React.createClass({
-
-	mixins: [ReactFireMixin],
+var UserPolls = React.createClass({
 
 	getInitialState: function() {
 		return getPollState();
 	},
 
-	componentWillMount: function() {
-		this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
-	},
-
 	componentDidMount: function() {
-		var idToken = localStorage.getItem('id_token');
-
 		AppStore.addChangeListener(this._onChange);
-
-	  if (idToken) {
-		  this.lock.getProfile(idToken, function (err, profile) {
-		    if (err) {
-		      console.log("Error loading the Profile", err);
-		      return;
-		    }
-		    this.setState({profile: profile});
-			  PollActions.getUserPolls(this.state.profile.nickname);
-		  }.bind(this));
-	  }
-
+		PollActions.getUserPolls(this.props.params.userName);
 	},
 
 	componentWillUnmount: function() {
@@ -50,8 +30,7 @@ var MyPolls = React.createClass({
 	},
 
   render: function() {
-
-  	console.log(this.state.pollData)
+  	// console.log(this.state.pollData);
   	var Row = ReactBootstrap.Row;
   	var Col = ReactBootstrap.Col;
   	var Grid = ReactBootstrap.Grid;
@@ -60,8 +39,10 @@ var MyPolls = React.createClass({
 		  		<Grid>
 		  			<Row>
 							<Col xs={12} md={6} mdOffset={3}>
-								<MyPollsSelector pollData={this.state.pollData} loggedIn={true} />
-								
+								<MyPollsSelector 
+								 pollData={this.state.pollData} 
+								 userName={this.props.params.userName} 
+								 loggedIn={true} />
 							</Col>
 						</Row>
 		  		</Grid>
@@ -70,4 +51,4 @@ var MyPolls = React.createClass({
   } 
 });
 
-module.exports = MyPolls;
+module.exports = UserPolls;

@@ -1,9 +1,10 @@
 var React = require('react');
-var ReactDOM = require('react-dom');
 var OptionSelector = require('./option-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
+var MyPollsModal = require('./my-polls-modal.jsx');
+var hashHistory = require('react-router').hashHistory;
 
 var AddPoll = React.createClass({
 
@@ -88,6 +89,8 @@ var AddPoll = React.createClass({
 		PollActions.addPoll([pieData, nickname, title]);
 
 		this.setState({text: nextText, title: nextTitle});
+
+		hashHistory.push('/');
 	},
 
   render: function() {

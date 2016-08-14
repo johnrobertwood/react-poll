@@ -7,8 +7,8 @@ var IndexRoute = require('react-router').IndexRoute;
 var Home = require('./components/home.jsx');
 var App = require('./components/app.jsx');
 var Login = require('./components/login.jsx');
-var MyPolls = require('./components/my-polls.jsx');
 var Test = require('./components/test.jsx');
+var UserPolls = require('./components/user-polls.jsx');
 var AddPoll = require('./components/add-poll.jsx');
 require("../css/style.scss");
 
@@ -18,15 +18,13 @@ ReactDOM.render(
     <Route path="/" component={App}>
     	<IndexRoute component={Home} />
 	    <Route path="/addpoll" component={AddPoll} />
-	    <Route path="/mypolls" component={MyPolls} />
 	    <Route path="/home" component={Home} />
+      <Route path="/users/:userName" component={UserPolls} />
       <Route path="*" component={Home} />
     </Route>
   </Router>,
   document.getElementById('container')
 )
-
-// ReactDOM.render(<App />, document.getElementById('container'));
 
 
 

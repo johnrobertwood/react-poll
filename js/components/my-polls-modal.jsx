@@ -28,7 +28,8 @@ var ExampleModal = React.createClass({
   },
 
   handleDelete: function(key) {
-    PollActions.delPoll(key);
+    var userName = this.props.userName;
+    PollActions.delPoll(key, userName);
     this.close();
   },
 

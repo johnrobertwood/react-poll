@@ -58,18 +58,18 @@ function getUserPolls(user) {
 
 }
 
-function delPoll(key) {
+function delPoll(key, userName) {
 
   var firebaseRef = firebase.database().ref('pollData');
   firebaseRef.child(key).set(null, function() {
-    AppStore.emitChange();
+    getUserPolls(userName);
   })
 
 }
 
 var AppStore = assign({}, EventEmitter.prototype, {
 
-  getUserPolls: function(user) {
+  getUserPolls: function() {
     return userPolls;
   },
 
@@ -123,7 +123,7 @@ AppDispatcher.register(function(action){
   }
 
   if (action.actionType === "DEL_POLL") {
-    delPoll(action.key);
+    delPoll(action.key, action.userName);
     AppStore.emitChange();
   }
   

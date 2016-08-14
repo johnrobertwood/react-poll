@@ -13,10 +13,6 @@ var MyPollsSelector = React.createClass({
 		return {pollData: this.props.pollData}
 	},
 
-	handleDelete: function(key) {
-		PollActions.delPoll(key);
-	},
-
 	handleChange: function(e) {
 		var firebaseRef = firebase.database().ref('pollData');
 		var pollIndex = e.target.getAttribute('data-index');
@@ -48,7 +44,8 @@ var MyPollsSelector = React.createClass({
 	    				loggedIn={true} 
 	    				i={i} 
 	    				key={i} 
-	    				pollData={this.props.pollData} />
+	    				pollData={this.props.pollData} 
+	    				userName={this.props.userName} />
 	  };
 	  return 	<div>
 							{this.props.pollData.map(createItem, this)}

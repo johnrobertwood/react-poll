@@ -35,10 +35,11 @@ var PollActions = {
     })
   },
 
-  delPoll: function(key) {
+  delPoll: function(key, userName) {
     AppDispatcher.dispatch({
       actionType: PollConstants.DEL_POLL,
-      key: key
+      key: key,
+      userName: userName
     })
   }
 
