@@ -8,7 +8,7 @@ var MyPollsModal = React.createClass({
   render: function() {
     return (
       <div>
-        <Link to={`/users/${this.props.userName}/${this.props.item['.key']}`}>
+        <Link to={`/users/mypolls/${this.props.userName}/${this.props.item['.key']}`}>
         <Button bsStyle="primary" bsSize="large" block>
           {this.props.item[2]}
         </Button>

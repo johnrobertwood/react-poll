@@ -1,8 +1,8 @@
 var React = require('react');
+var AllPollsSelector = require('./all-polls-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
-var AllPollsSelector = require('./all-polls-selector.jsx');
 
 function getPollState() {
   return {
@@ -10,7 +10,7 @@ function getPollState() {
   };
 }
 
-var UserPolls = React.createClass({
+var UserAllPolls = React.createClass({
 
 	getInitialState: function() {
 		return getPollState();
@@ -50,4 +50,4 @@ var UserPolls = React.createClass({
   } 
 });
 
-module.exports = UserPolls;
+module.exports = UserAllPolls;

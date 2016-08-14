@@ -44,7 +44,7 @@ var MyPollView = React.createClass({
 
 	close: function() {
 	  this.setState({ showModal: false });
-	  hashHistory.push(`/users/${this.props.params.userName}`)
+	  hashHistory.push(`/users/mypolls/${this.props.params.userName}`)
 	},
 
 	handleChange: function(e) {

@@ -8,8 +8,6 @@ var AppStore = require('../stores/AppStore.jsx');
 
 var Header = React.createClass({
 
-	mixins: [ReactFireMixin],
-
   getInitialState: function() {
     return {profile: {}}  
   },
@@ -30,7 +28,6 @@ var Header = React.createClass({
         this.setState({profile: profile});
       }.bind(this));
     }
-
   },
 
 	handleLogout: function() {
@@ -41,13 +38,13 @@ var Header = React.createClass({
 
   render: function() {
     return (
-    	<div>
-    	<header>
-    	  <nav>
-    	    <ul>
-    	      <li><Link to="/home" activeClassName="active">Home</Link></li>
-    	      <li><Link to="/addpoll" activeClassName="active">Add Poll</Link></li>
-            <li><Link to={`/users/${this.state.profile.nickname}`}>My Polls</Link></li>
+      <div>
+      <header>
+        <nav>
+          <ul>
+            <li><Link to={`/users/allpolls/${this.state.profile.nickname}`}>Home</Link></li>
+            <li><Link to="/addpoll" activeClassName="active">Add Poll</Link></li>
+            <li><Link to={`/users/mypolls/${this.state.profile.nickname}`}>My Polls</Link></li>
     	      <li className="login-box" onClick={this.handleLogout}><Button>Sign Out</Button></li>
     	    </ul>
     	  </nav>

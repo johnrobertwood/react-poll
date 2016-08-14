@@ -10,7 +10,7 @@ function getPollState() {
   };
 }
 
-var UserPolls = React.createClass({
+var UserMyPolls = React.createClass({
 
 	getInitialState: function() {
 		return getPollState();
@@ -50,4 +50,4 @@ var UserPolls = React.createClass({
   } 
 });
 
-module.exports = UserPolls;
+module.exports = UserMyPolls;
