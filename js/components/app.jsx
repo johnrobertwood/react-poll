@@ -25,9 +25,7 @@ var App = React.createClass({
 
   componentWillMount: function() {
 	  this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
-      // Set the state with a property that has the token
 	  this.setState({idToken: this.getIdToken()})
-    // AppStore.addChangeListener(this._onChange);
   },
 
   componentDidMount: function() {
@@ -55,17 +53,11 @@ var App = React.createClass({
         PollActions.logIn();
       }
       if (authHash.error) {
-        // Handle any error conditions
         console.log("Error signing in", authHash);
-
       }
     }
     return idToken;
   },
-
-  // _onChange: function() {
-  //   this.setState(getPollState());
-  // },
 
   showLock: function() {
     this.lock.show();

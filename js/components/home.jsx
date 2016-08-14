@@ -1,5 +1,4 @@
 var React = require('react');
-var ReactDOM = require('react-dom');
 var HomeSelector = require('./home-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
 var PollActions = require('../actions/PollActions.jsx');
@@ -12,8 +11,6 @@ function getPollState() {
 }
 
 var PollApp = React.createClass({
-
-	mixins: [ReactFireMixin],
 
 	getInitialState: function() {
 		return getPollState();

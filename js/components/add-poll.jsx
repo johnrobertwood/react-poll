@@ -1,14 +1,10 @@
 var React = require('react');
-var OptionSelector = require('./option-selector.jsx');
 var ReactBootstrap = require('react-bootstrap');
 var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
-var MyPollsModal = require('./my-polls-modal.jsx');
 var hashHistory = require('react-router').hashHistory;
 
 var AddPoll = React.createClass({
-
-	mixins: [ReactFireMixin],
 
 	getInitialState: function() {
 		return {
@@ -24,13 +20,11 @@ var AddPoll = React.createClass({
 	componentWillMount: function() {
 		this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
 		var firebaseRef = firebase.database().ref('pollData');
-		this.bindAsArray(firebaseRef, 'pollData');
 	},
 
 	componentDidMount: function() {
 
 	  var userRef = firebase.database().ref('users')
-	  this.bindAsArray(userRef, 'users');
 	  AppStore.addChangeListener(this._onChange);
 
   	var idToken = localStorage.getItem('id_token');

@@ -30,7 +30,6 @@ var UserPolls = React.createClass({
 	},
 
   render: function() {
-  	// console.log(this.state.pollData);
   	var Row = ReactBootstrap.Row;
   	var Col = ReactBootstrap.Col;
   	var Grid = ReactBootstrap.Grid;

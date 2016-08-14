@@ -52,12 +52,10 @@
 	var IndexRoute = __webpack_require__(175).IndexRoute;
 	var Home = __webpack_require__(238);
 	var App = __webpack_require__(512);
-	var Login = __webpack_require__(513);
-	var Test = __webpack_require__(515);
+	var MyPollView = __webpack_require__(515);
 	var UserPolls = __webpack_require__(516);
-	var AddPoll = __webpack_require__(520);
-	var MyPollModalView = __webpack_require__(519);
-	__webpack_require__(523);
+	var AddPoll = __webpack_require__(519);
+	__webpack_require__(520);
 
 
 	ReactDOM.render(
@@ -67,7 +65,7 @@
 		    React.createElement(Route, {path: "/addpoll", component: AddPoll}), 
 		    React.createElement(Route, {path: "/home", component: Home}), 
 	      React.createElement(Route, {path: "/users/:userName", component: UserPolls}), 
-	      React.createElement(Route, {path: "/users/:userName/:key", component: Test}), 
+	      React.createElement(Route, {path: "/users/:userName/:key", component: MyPollView}), 
 	      React.createElement(Route, {path: "*", component: Home})
 	    )
 	  ),
@@ -27108,11 +27106,10 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
-	var ReactDOM = __webpack_require__(35);
 	var HomeSelector = __webpack_require__(239);
 	var ReactBootstrap = __webpack_require__(240);
-	var PollActions = __webpack_require__(502);
-	var AppStore = __webpack_require__(509);
+	var PollActions = __webpack_require__(509);
+	var AppStore = __webpack_require__(503);
 
 	function getPollState() {
 	  return {
@@ -27121,8 +27118,6 @@
 	}
 
 	var PollApp = React.createClass({displayName: "PollApp",
-
-		mixins: [ReactFireMixin],
 
 		getInitialState: function() {
 			return getPollState();
@@ -27185,59 +27180,18 @@
 
 	var React = __webpack_require__(1);
 	var ReactBootstrap = __webpack_require__(240);
-	var PollPieChart = __webpack_require__(491);
-	var PollActions = __webpack_require__(502);
-	var AppStore = __webpack_require__(509);
-	var HomeModal = __webpack_require__(511);
+	var HomeModal = __webpack_require__(491);
 
 	var HomeSelector = React.createClass({displayName: "HomeSelector",
-
-		mixins: [ReactFireMixin],
 
 		getInitialState: function() {
 			return {pollData: this.props.pollData}
 		},
 
-		componentWillMount: function() {
-			var firebaseRef = firebase.database().ref('pollData');
-		},
-
-		handleDelete: function(key) {
-			// var firebaseRef = firebase.database().ref('pollData');
-			// firebaseRef.child(key).remove();
-			// AppStore.emitChange();
-
-			PollActions.delPoll(key);
-		},
-
-		handleChange: function(e) {
-			var firebaseRef = firebase.database().ref('pollData');
-			var pollIndex = e.target.getAttribute('data-index');
-			var length = this.props.pollData[pollIndex][0].length;
-			var dataArr = this.props.pollData[pollIndex][0];
-			var updatedPoll;
-			var pollKey = e.target.getAttribute('data-key');
-			for (var i = 0; i < length; i++) {
-				if (dataArr[i].label === e.target.value) {
-					this.props.pollData[pollIndex][0][i].value += 1;
-					firebaseRef.child(pollKey).update({0: this.props.pollData[pollIndex][0]});
-					AppStore.emitChange();
-				}
-			}
-		},
-
 		render: function() {
-			var Grid = ReactBootstrap.Grid;
-			var Row = ReactBootstrap.Row;
-			var Col = ReactBootstrap.Col;
-			var FormGroup = ReactBootstrap.FormGroup;
-			var ControlLabel = ReactBootstrap.ControlLabel;
-			var FormControl = ReactBootstrap.FormControl;
 			var PanelGroup = ReactBootstrap.PanelGroup;
-			var Panel = ReactBootstrap.Panel;
-			var Button = ReactBootstrap.Button;
-			var _this = this;
-			// console.log(this.props.pollData)
+
+			
 		  var createItem = function(item, i) {
 		    return React.createElement(HomeModal, {
 		    				item: item, 
@@ -45935,7 +45889,99 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
-	var PieChart = __webpack_require__(492).Pie;
+	var ReactBootstrap = __webpack_require__(240);
+	var Button = __webpack_require__(240).Button;
+	var Modal = __webpack_require__(240).Modal;
+	var FormGroup = __webpack_require__(240).FormGroup;
+	var ControlLabel = __webpack_require__(240).ControlLabel;
+	var FormControl = __webpack_require__(240).FormControl;
+	var PollPieChart = __webpack_require__(492);
+	var AppStore = __webpack_require__(503);
+
+
+	var ExampleModal = React.createClass({displayName: "ExampleModal",
+
+	  getInitialState: function() {
+	    return { showModal: false, pollData: [] };
+	  },
+
+	  close: function() {
+	    this.setState({ showModal: false });
+	  },
+
+	  open: function() {
+	    this.setState({ showModal: true });
+	  },
+
+	  handleChange: function(e) {
+	    var firebaseRef = firebase.database().ref('pollData');
+	    var pollIndex = e.target.getAttribute('data-index');
+	    var length = this.props.pollData[pollIndex][0].length;
+	    var dataArr = this.props.pollData[pollIndex][0];
+	    var updatedPoll;
+	    var pollKey = e.target.getAttribute('data-key');
+	    for (var i = 0; i < length; i++) {
+	      if (dataArr[i].label === e.target.value) {
+	        this.props.pollData[pollIndex][0][i].value += 1;
+	        firebaseRef.child(pollKey).update({0: this.props.pollData[pollIndex][0]});
+	        AppStore.emitChange();
+	      }
+	    }
+	  },
+
+	  render: function() {
+
+	    var _this = this;
+	    return (
+	      React.createElement("div", null, 
+	        React.createElement(Button, {bsStyle: "primary", bsSize: "large", onClick: this.open, block: true}, 
+	          this.props.item[2]
+	        ), 
+
+	        React.createElement(Modal, {show: this.state.showModal, onHide: this.close}, 
+	          React.createElement(Modal.Header, {closeButton: true}, 
+	            React.createElement(Modal.Title, null, this.props.item[2])
+	          ), 
+	          React.createElement(Modal.Body, null, 
+
+	              React.createElement("div", {key: this.props.i}, 
+	                React.createElement("div", {className: "row"}, 
+	                  React.createElement(FormGroup, {controlId: "formControlsSelect"}, 
+	                    React.createElement(ControlLabel, null, "Vote"), 
+	                    React.createElement(FormControl, {
+	                      componentClass: "select", 
+	                      key: this.props.i, "data-index": this.props.i, 
+	                      "data-key": this.props.item['.key'], 
+	                      onChange: this.handleChange, 
+	                      defaultValue: "default"}, 
+	                      React.createElement("option", {disabled: true, value: "default"}), 
+	                        this.props.item[0].map(function(subitem, i) {
+	                          return React.createElement("option", {key: i, value: subitem.label}, subitem.label)}, this)
+	                    )
+	                  ), 
+	                  React.createElement(PollPieChart, {data: this.props.item[0]})
+	                ), 
+	                React.createElement("hr", null)
+	              )
+	            
+	          ), 
+	          React.createElement(Modal.Footer, null, 
+	            React.createElement(Button, {onClick: this.close, bsStyle: "info", block: true}, "Close")
+	          )
+	        )
+	      )
+	    );
+	  }
+	});
+	  
+	module.exports = ExampleModal;
+
+/***/ },
+/* 492 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(1);
+	var PieChart = __webpack_require__(493).Pie;
 
 	var PollPieChart = React.createClass({displayName: "PollPieChart",
 
@@ -45992,31 +46038,31 @@
 	module.exports = PollPieChart;
 
 /***/ },
-/* 492 */
+/* 493 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = {
-	  Bar: __webpack_require__(493),
-	  Doughnut: __webpack_require__(497),
-	  Line: __webpack_require__(498),
-	  Pie: __webpack_require__(499),
-	  PolarArea: __webpack_require__(500),
-	  Radar: __webpack_require__(501),
-	  createClass: __webpack_require__(494).createClass
+	  Bar: __webpack_require__(494),
+	  Doughnut: __webpack_require__(498),
+	  Line: __webpack_require__(499),
+	  Pie: __webpack_require__(500),
+	  PolarArea: __webpack_require__(501),
+	  Radar: __webpack_require__(502),
+	  createClass: __webpack_require__(495).createClass
 	};
 
 
 /***/ },
-/* 493 */
+/* 494 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(494);
+	var vars = __webpack_require__(495);
 
 	module.exports = vars.createClass('Bar', ['getBarsAtEvent']);
 
 
 /***/ },
-/* 494 */
+/* 495 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
@@ -46079,7 +46125,7 @@
 	    };
 
 	    classData.initializeChart = function(nextProps) {
-	      var Chart = __webpack_require__(495);
+	      var Chart = __webpack_require__(496);
 	      var el = ReactDOM.findDOMNode(this);
 	      var ctx = el.getContext("2d");
 	      var chart = new Chart(ctx)[chartType](nextProps.data, nextProps.options || {});
@@ -46170,7 +46216,7 @@
 
 
 /***/ },
-/* 495 */
+/* 496 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -46484,7 +46530,7 @@
 				//Method for warning of errors
 				if (window.console && typeof window.console.warn === "function") console.warn(str);
 			},
-			amd = helpers.amd = ("function" === 'function' && __webpack_require__(496)),
+			amd = helpers.amd = ("function" === 'function' && __webpack_require__(497)),
 			//-- Math methods
 			isNumber = helpers.isNumber = function(n){
 				return !isNaN(parseFloat(n)) && isFinite(n);
@@ -49912,7 +49958,7 @@
 
 
 /***/ },
-/* 496 */
+/* 497 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -49920,121 +49966,250 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 497 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var vars = __webpack_require__(494);
-
-	module.exports = vars.createClass('Doughnut', ['getSegmentsAtEvent']);
-
-
-/***/ },
 /* 498 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(494);
+	var vars = __webpack_require__(495);
 
-	module.exports = vars.createClass('Line', ['getPointsAtEvent']);
+	module.exports = vars.createClass('Doughnut', ['getSegmentsAtEvent']);
 
 
 /***/ },
 /* 499 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(494);
+	var vars = __webpack_require__(495);
 
-	module.exports = vars.createClass('Pie', ['getSegmentsAtEvent']);
+	module.exports = vars.createClass('Line', ['getPointsAtEvent']);
 
 
 /***/ },
 /* 500 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(494);
+	var vars = __webpack_require__(495);
 
-	module.exports = vars.createClass('PolarArea', ['getSegmentsAtEvent']);
+	module.exports = vars.createClass('Pie', ['getSegmentsAtEvent']);
 
 
 /***/ },
 /* 501 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(494);
+	var vars = __webpack_require__(495);
 
-	module.exports = vars.createClass('Radar', ['getPointsAtEvent']);
+	module.exports = vars.createClass('PolarArea', ['getSegmentsAtEvent']);
 
 
 /***/ },
 /* 502 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var AppDispatcher = __webpack_require__(503);
-	var PollConstants = __webpack_require__(507);
+	var vars = __webpack_require__(495);
 
-	var PollActions = {
-	  
-	  logIn: function() {
-	    AppDispatcher.dispatch({
-	      actionType: PollConstants.LOG_IN
-	    });
-	  },
-
-	  logOut: function() {
-	    AppDispatcher.dispatch({
-	      actionType: PollConstants.LOG_OUT
-	    });
-	  },
-	  
-	  addPoll: function(item) {
-	    AppDispatcher.dispatch({
-	      actionType: PollConstants.ADD_ITEM,
-	      item: item
-	    });
-	  },
-
-	  getPoll: function(key) {
-	    AppDispatcher.dispatch({
-	      actionType: PollConstants.GET_POLL,
-	      key: key
-	    });
-	  },
-
-	  getUserPolls: function(user) {
-	    AppDispatcher.dispatch({
-	      actionType: PollConstants.GET_USER_POLLS,
-	      user: user
-	    });
-	  },
-
-	  getAllPolls: function() {
-	    AppDispatcher.dispatch({
-	      actionType: PollConstants.GET_ALL_POLLS
-	    })
-	  },
-
-	  delPoll: function(key, userName) {
-	    AppDispatcher.dispatch({
-	      actionType: PollConstants.DEL_POLL,
-	      key: key,
-	      userName: userName
-	    })
-	  },
-
-	};
-
-	module.exports = PollActions;
+	module.exports = vars.createClass('Radar', ['getPointsAtEvent']);
 
 
 /***/ },
 /* 503 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Dispatcher = __webpack_require__(504).Dispatcher;
+	var AppDispatcher = __webpack_require__(504);
+	var EventEmitter = __webpack_require__(508).EventEmitter;
+	var assign = __webpack_require__(4);
+
+	var CHANGE_EVENT = 'change';
+
+	var loggedIn = true;
+
+	var userPolls = [];
+
+	var polls = [];
+
+	var poll = [];
+
+	var showModal = true;
+
+	function logIn() {
+	  loggedIn = true;
+	}
+
+	function logOut() {
+	  loggedIn = false;
+	}
+
+	function hideModal() {
+	  showModal = false;
+	}
+
+	function resetModal() {
+	  showModal = true;
+	}
+
+	function getPoll(key) {
+	  polls = [];
+	  firebase.database().ref('pollData').once('value', function(snapshot) {
+	    var obj = snapshot.val();
+	    for (var prop in obj) {
+	      item = [];
+	      item.push(obj[prop][0])
+	      item[1] = obj[prop][1] 
+	      item[2] = obj[prop][2]
+	      item[".key"] = prop;
+	      polls.push(item);
+	    }
+
+	    poll = polls.filter(function(poll) {
+	      return poll[".key"] === key;
+	    })
+	    AppStore.emitChange();
+	  })
+	  return poll;
+	}
+
+	function getAllPolls() {
+	  polls = [];
+	  firebase.database().ref('pollData').once('value', function(snapshot) {
+	    var obj = snapshot.val();
+	    for (var prop in obj) {
+	      item = [];
+	      item.push(obj[prop][0])
+	      item[1] = obj[prop][1] 
+	      item[2] = obj[prop][2]
+	      item[".key"] = prop;
+	      polls.push(item);
+	    }
+
+	    AppStore.emitChange()
+	  });
+	  return polls;
+	}
+
+	function getUserPolls(user) {
+	  userPolls = [];
+	  firebase.database().ref('pollData').once('value', function(snapshot) {
+	    var obj = snapshot.val();
+
+	    for (var prop in obj) {
+	      item = [];
+	      item.push(obj[prop][0])
+	      item[1] = obj[prop][1] 
+	      item[2] = obj[prop][2]
+	      item[".key"] = prop;
+	      userPolls.push(item);
+	    }
+
+	    userPolls = userPolls.filter(function(poll) {
+	      return poll[1] === user;
+	    })
+	    AppStore.emitChange();
+	    return userPolls;
+	  });
+	}
+
+	function delPoll(key, userName) {
+	  var firebaseRef = firebase.database().ref('pollData');
+	  firebaseRef.child(key).remove()
+	  userPolls = userPolls.filter(function(poll) {
+	    return poll['.key'] !== key;
+	  })
+	  hideModal();
+	  AppStore.emitChange();
+	  resetModal();
+	}
+
+	var AppStore = assign({}, EventEmitter.prototype, {
+
+	  getPoll: function() {
+	    return poll;
+	  },
+
+	  getUserPolls: function() {
+	    return userPolls;
+	  },
+
+	  getAllPolls: function() {
+	    return polls;
+	  },
+
+	  loginStatus: function() {
+	    return loggedIn;
+	  },
+
+	  emitChange: function() {
+	    this.emit(CHANGE_EVENT);
+	  },
+
+	  addChangeListener: function(callback) {
+	    this.on(CHANGE_EVENT, callback);
+	  },
+
+	  removeChangeListener: function(callback) {
+	    this.removeListener(CHANGE_EVENT, callback);
+	  },
+
+	  getModalStatus: function() {
+	    return showModal;
+	  }
+	  
+	});
+
+	AppDispatcher.register(function(action){
+	  var text;
+
+	  if (action.actionType === "LOG_IN") {
+	    loggedIn = true;
+	    AppStore.emitChange();
+	  }
+
+	  if (action.actionType === "LOG_OUT") {
+	    loggedIn = false;
+	    AppStore.emitChange();
+	  }
+
+	  if (action.actionType === "ADD_ITEM") {
+	    firebase.database().ref('pollData').push(action.item);
+	    AppStore.emitChange();
+	  }
+
+	  if (action.actionType === "GET_POLL") {
+	    getPoll(action.key);
+	  }
+
+	  if (action.actionType === "GET_USER_POLLS") {
+
+	    getUserPolls(action.user); 
+	  }
+
+	  if (action.actionType === "GET_ALL_POLLS") {
+	    getAllPolls();
+	  }
+
+	  if (action.actionType === "DEL_POLL") {
+	    delPoll(action.key, action.userName);
+	    AppStore.emitChange();
+	  }
+	  
+	  return true;
+	});
+
+	module.exports = AppStore;
+
+
+
+
+
+
+/***/ },
+/* 504 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Dispatcher = __webpack_require__(505).Dispatcher;
 
 	module.exports = new Dispatcher();
 
 /***/ },
-/* 504 */
+/* 505 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -50046,11 +50221,11 @@
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 */
 
-	module.exports.Dispatcher = __webpack_require__(505);
+	module.exports.Dispatcher = __webpack_require__(506);
 
 
 /***/ },
-/* 505 */
+/* 506 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -50072,7 +50247,7 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-	var invariant = __webpack_require__(506);
+	var invariant = __webpack_require__(507);
 
 	var _prefix = 'ID_';
 
@@ -50287,7 +50462,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 506 */
+/* 507 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -50342,279 +50517,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 507 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var keyMirror = __webpack_require__(508);
-
-	module.exports = keyMirror({
-	  ADD_ITEM: 'ADD_ITEM',
-	  REMOVE_ITEM: 'REMOVE_ITEM',
-	  LOG_IN: 'LOG_IN',
-	  LOG_OUT: 'LOG_OUT',
-	  GET_PROFILE: 'GET_PROFILE',
-	  GET_POLL: 'GET_POLL',
-	  GET_ALL_POLLS: 'GET_ALL_POLLS',
-	  GET_USER_POLLS: 'GET_USER_POLLS',
-	  DEL_POLL: 'DEL_POLL'
-	});
-
-
-/***/ },
 /* 508 */
-/***/ function(module, exports) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 */
-
-	"use strict";
-
-	/**
-	 * Constructs an enumeration with keys equal to their value.
-	 *
-	 * For example:
-	 *
-	 *   var COLORS = keyMirror({blue: null, red: null});
-	 *   var myColor = COLORS.blue;
-	 *   var isColorValid = !!COLORS[myColor];
-	 *
-	 * The last line could not be performed if the values of the generated enum were
-	 * not equal to their keys.
-	 *
-	 *   Input:  {key1: val1, key2: val2}
-	 *   Output: {key1: key1, key2: key2}
-	 *
-	 * @param {object} obj
-	 * @return {object}
-	 */
-	var keyMirror = function(obj) {
-	  var ret = {};
-	  var key;
-	  if (!(obj instanceof Object && !Array.isArray(obj))) {
-	    throw new Error('keyMirror(...): Argument must be an object.');
-	  }
-	  for (key in obj) {
-	    if (!obj.hasOwnProperty(key)) {
-	      continue;
-	    }
-	    ret[key] = key;
-	  }
-	  return ret;
-	};
-
-	module.exports = keyMirror;
-
-
-/***/ },
-/* 509 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var AppDispatcher = __webpack_require__(503);
-	var EventEmitter = __webpack_require__(510).EventEmitter;
-	var assign = __webpack_require__(4);
-
-	var CHANGE_EVENT = 'change';
-
-	var loggedIn = true;
-
-	var userPolls = [];
-
-	var polls = [];
-
-	var poll = [];
-
-	var showModal = true;
-
-	function logIn() {
-	  loggedIn = true;
-	}
-
-	function logOut() {
-	  loggedIn = false;
-	}
-
-	function hideModal() {
-	  showModal = false;
-	}
-
-	function resetModal() {
-	  showModal = true;
-	}
-
-	function getPoll(key) {
-	  polls = [];
-	  firebase.database().ref('pollData').once('value', function(snapshot) {
-	    var obj = snapshot.val();
-	    for (var prop in obj) {
-	      item = [];
-	      item.push(obj[prop][0])
-	      item[1] = obj[prop][1] 
-	      item[2] = obj[prop][2]
-	      item[".key"] = prop;
-	      polls.push(item);
-	    }
-
-	    poll = polls.filter(function(poll) {
-	      return poll[".key"] === key;
-	    })
-	    AppStore.emitChange();
-	  })
-	  return poll;
-	}
-
-	function getAllPolls() {
-	  polls = [];
-	  firebase.database().ref('pollData').once('value', function(snapshot) {
-	    var obj = snapshot.val();
-	    for (var prop in obj) {
-	      item = [];
-	      item.push(obj[prop][0])
-	      item[1] = obj[prop][1] 
-	      item[2] = obj[prop][2]
-	      item[".key"] = prop;
-	      polls.push(item);
-	    }
-
-	    AppStore.emitChange()
-	  });
-	  return polls;
-	}
-
-	function getUserPolls(user) {
-	  userPolls = [];
-	  firebase.database().ref('pollData').once('value', function(snapshot) {
-	    var obj = snapshot.val();
-
-	    for (var prop in obj) {
-	      item = [];
-	      item.push(obj[prop][0])
-	      item[1] = obj[prop][1] 
-	      item[2] = obj[prop][2]
-	      item[".key"] = prop;
-	      userPolls.push(item);
-	    }
-
-	    userPolls = userPolls.filter(function(poll) {
-	      return poll[1] === user;
-	    })
-	    AppStore.emitChange();
-	    return userPolls;
-	  });
-	}
-
-	function delPoll(key, userName) {
-	  var firebaseRef = firebase.database().ref('pollData');
-	  // firebaseRef.child(key).set(null, function() {
-	  //   getUserPolls(userName);
-	  // })  
-	  firebaseRef.child(key).remove()
-	  console.log(userPolls);
-	  userPolls = userPolls.filter(function(poll) {
-	    return poll['.key'] !== key;
-	  })
-	  hideModal();
-	  AppStore.emitChange();
-	  resetModal();
-	}
-
-	var AppStore = assign({}, EventEmitter.prototype, {
-
-	  getPoll: function() {
-	    return poll;
-	  },
-
-	  getUserPolls: function() {
-	    return userPolls;
-	  },
-
-	  getAllPolls: function() {
-	    return polls;
-	  },
-
-	  loginStatus: function() {
-	    return loggedIn;
-	  },
-
-	  emitChange: function() {
-	    this.emit(CHANGE_EVENT);
-	  },
-
-	  addChangeListener: function(callback) {
-	    this.on(CHANGE_EVENT, callback);
-	  },
-
-	  removeChangeListener: function(callback) {
-	    this.removeListener(CHANGE_EVENT, callback);
-	  },
-
-	  getModalStatus: function() {
-	    return showModal;
-	  }
-	  
-	});
-
-	AppDispatcher.register(function(action){
-	  var text;
-
-	  if (action.actionType === "LOG_IN") {
-	    loggedIn = true;
-	    AppStore.emitChange();
-	  }
-
-	  if (action.actionType === "LOG_OUT") {
-	    loggedIn = false;
-	    AppStore.emitChange();
-	  }
-
-	  if (action.actionType === "ADD_ITEM") {
-	    firebase.database().ref('pollData').push(action.item);
-	    AppStore.emitChange();
-	  }
-
-	  if (action.actionType === "GET_POLL") {
-	    getPoll(action.key);
-	  }
-
-	  if (action.actionType === "GET_USER_POLLS") {
-
-	    getUserPolls(action.user); 
-	  }
-
-	  if (action.actionType === "GET_ALL_POLLS") {
-	    getAllPolls();
-	  }
-
-	  if (action.actionType === "DEL_POLL") {
-	    delPoll(action.key, action.userName);
-	    AppStore.emitChange();
-	  }
-	  
-	  return true;
-	});
-
-	module.exports = AppStore;
-
-
-
-
-
-
-/***/ },
-/* 510 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -50922,105 +50825,143 @@
 
 
 /***/ },
-/* 511 */
+/* 509 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var React = __webpack_require__(1);
-	var ReactBootstrap = __webpack_require__(240);
-	var Button = __webpack_require__(240).Button;
-	var Tooltip = __webpack_require__(240).Tooltip;
-	var Popover = __webpack_require__(240).Popover;
-	var Modal = __webpack_require__(240).Modal;
-	var OverlayTrigger = __webpack_require__(240).OverlayTrigger;
-	var FormGroup = __webpack_require__(240).FormGroup;
-	var ControlLabel = __webpack_require__(240).ControlLabel;
-	var FormControl = __webpack_require__(240).FormControl;
-	var PollActions = __webpack_require__(502);
-	var PollPieChart = __webpack_require__(491);
-	var AppStore = __webpack_require__(509);
+	var AppDispatcher = __webpack_require__(504);
+	var PollConstants = __webpack_require__(510);
 
-
-	var ExampleModal = React.createClass({displayName: "ExampleModal",
-
-	  getInitialState: function() {
-	    return { showModal: false, pollData: [] };
-	  },
-
-	  close: function() {
-	    this.setState({ showModal: false });
-	  },
-
-	  open: function() {
-	    this.setState({ showModal: true });
-	  },
-
-	  handleDelete: function(key) {
-	    PollActions.delPoll(key);
-	    this.close();
-	  },
-
-	  handleChange: function(e) {
-	    var firebaseRef = firebase.database().ref('pollData');
-	    var pollIndex = e.target.getAttribute('data-index');
-	    var length = this.props.pollData[pollIndex][0].length;
-	    var dataArr = this.props.pollData[pollIndex][0];
-	    var updatedPoll;
-	    var pollKey = e.target.getAttribute('data-key');
-	    for (var i = 0; i < length; i++) {
-	      if (dataArr[i].label === e.target.value) {
-	        this.props.pollData[pollIndex][0][i].value += 1;
-	        firebaseRef.child(pollKey).update({0: this.props.pollData[pollIndex][0]});
-	        AppStore.emitChange();
-	      }
-	    }
-	  },
-
-	  render: function() {
-
-	    var _this = this;
-	    return (
-	      React.createElement("div", null, 
-	        React.createElement(Button, {bsStyle: "primary", bsSize: "large", onClick: this.open, block: true}, 
-	          this.props.item[2]
-	        ), 
-
-	        React.createElement(Modal, {show: this.state.showModal, onHide: this.close}, 
-	          React.createElement(Modal.Header, {closeButton: true}, 
-	            React.createElement(Modal.Title, null, this.props.item[2])
-	          ), 
-	          React.createElement(Modal.Body, null, 
-
-	              React.createElement("div", {key: this.props.i}, 
-	                React.createElement("div", {className: "row"}, 
-	                  React.createElement(FormGroup, {controlId: "formControlsSelect"}, 
-	                    React.createElement(ControlLabel, null, "Vote"), 
-	                    React.createElement(FormControl, {
-	                      componentClass: "select", 
-	                      key: this.props.i, "data-index": this.props.i, 
-	                      "data-key": this.props.item['.key'], 
-	                      onChange: this.handleChange, 
-	                      defaultValue: "default"}, 
-	                      React.createElement("option", {disabled: true, value: "default"}), 
-	                        this.props.item[0].map(function(subitem, i) {
-	                          return React.createElement("option", {key: i, value: subitem.label}, subitem.label)}, this)
-	                    )
-	                  ), 
-	                  React.createElement(PollPieChart, {data: this.props.item[0]})
-	                ), 
-	                React.createElement("hr", null)
-	              )
-	            
-	          ), 
-	          React.createElement(Modal.Footer, null, 
-	            React.createElement(Button, {onClick: this.close, bsStyle: "info", block: true}, "Close")
-	          )
-	        )
-	      )
-	    );
-	  }
-	});
+	var PollActions = {
 	  
-	module.exports = ExampleModal;
+	  logIn: function() {
+	    AppDispatcher.dispatch({
+	      actionType: PollConstants.LOG_IN
+	    });
+	  },
+
+	  logOut: function() {
+	    AppDispatcher.dispatch({
+	      actionType: PollConstants.LOG_OUT
+	    });
+	  },
+	  
+	  addPoll: function(item) {
+	    AppDispatcher.dispatch({
+	      actionType: PollConstants.ADD_ITEM,
+	      item: item
+	    });
+	  },
+
+	  getPoll: function(key) {
+	    AppDispatcher.dispatch({
+	      actionType: PollConstants.GET_POLL,
+	      key: key
+	    });
+	  },
+
+	  getUserPolls: function(user) {
+	    AppDispatcher.dispatch({
+	      actionType: PollConstants.GET_USER_POLLS,
+	      user: user
+	    });
+	  },
+
+	  getAllPolls: function() {
+	    AppDispatcher.dispatch({
+	      actionType: PollConstants.GET_ALL_POLLS
+	    })
+	  },
+
+	  delPoll: function(key, userName) {
+	    AppDispatcher.dispatch({
+	      actionType: PollConstants.DEL_POLL,
+	      key: key,
+	      userName: userName
+	    })
+	  },
+
+	};
+
+	module.exports = PollActions;
+
+
+/***/ },
+/* 510 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var keyMirror = __webpack_require__(511);
+
+	module.exports = keyMirror({
+	  ADD_ITEM: null,
+	  REMOVE_ITEM: null,
+	  LOG_IN: null,
+	  LOG_OUT: null,
+	  GET_PROFILE: null,
+	  GET_POLL: null,
+	  GET_ALL_POLLS: null,
+	  GET_USER_POLLS: null,
+	  DEL_POLL: null
+	});
+
+
+/***/ },
+/* 511 */
+/***/ function(module, exports) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 */
+
+	"use strict";
+
+	/**
+	 * Constructs an enumeration with keys equal to their value.
+	 *
+	 * For example:
+	 *
+	 *   var COLORS = keyMirror({blue: null, red: null});
+	 *   var myColor = COLORS.blue;
+	 *   var isColorValid = !!COLORS[myColor];
+	 *
+	 * The last line could not be performed if the values of the generated enum were
+	 * not equal to their keys.
+	 *
+	 *   Input:  {key1: val1, key2: val2}
+	 *   Output: {key1: key1, key2: key2}
+	 *
+	 * @param {object} obj
+	 * @return {object}
+	 */
+	var keyMirror = function(obj) {
+	  var ret = {};
+	  var key;
+	  if (!(obj instanceof Object && !Array.isArray(obj))) {
+	    throw new Error('keyMirror(...): Argument must be an object.');
+	  }
+	  for (key in obj) {
+	    if (!obj.hasOwnProperty(key)) {
+	      continue;
+	    }
+	    ret[key] = key;
+	  }
+	  return ret;
+	};
+
+	module.exports = keyMirror;
+
 
 /***/ },
 /* 512 */
@@ -51031,9 +50972,9 @@
 	var Login = __webpack_require__(513);
 	var Home = __webpack_require__(238);
 	var Header = __webpack_require__(514);
-	var AppStore = __webpack_require__(509);
+	var AppStore = __webpack_require__(503);
 	var hashHistory = __webpack_require__(175).hashHistory;
-	var PollActions = __webpack_require__(502);
+	var PollActions = __webpack_require__(509);
 
 	function getLoginState() {
 	  return {
@@ -51053,9 +50994,7 @@
 
 	  componentWillMount: function() {
 		  this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
-	      // Set the state with a property that has the token
 		  this.setState({idToken: this.getIdToken()})
-	    // AppStore.addChangeListener(this._onChange);
 	  },
 
 	  componentDidMount: function() {
@@ -51083,17 +51022,11 @@
 	        PollActions.logIn();
 	      }
 	      if (authHash.error) {
-	        // Handle any error conditions
 	        console.log("Error signing in", authHash);
-
 	      }
 	    }
 	    return idToken;
 	  },
-
-	  // _onChange: function() {
-	  //   this.setState(getPollState());
-	  // },
 
 	  showLock: function() {
 	    this.lock.show();
@@ -51170,8 +51103,8 @@
 	var Link = __webpack_require__(175).Link;
 	var Button = __webpack_require__(240).Button;
 	var hashHistory = __webpack_require__(175).hashHistory;
-	var PollActions = __webpack_require__(502);
-	var AppStore = __webpack_require__(509);
+	var PollActions = __webpack_require__(509);
+	var AppStore = __webpack_require__(503);
 
 	var Header = React.createClass({displayName: "Header",
 
@@ -51214,7 +51147,7 @@
 	    	    React.createElement("ul", null, 
 	    	      React.createElement("li", null, React.createElement(Link, {to: "/home", activeClassName: "active"}, "Home")), 
 	    	      React.createElement("li", null, React.createElement(Link, {to: "/addpoll", activeClassName: "active"}, "Add Poll")), 
-	            React.createElement("li", null, React.createElement(Link, {to: `/users/${this.state.profile.nickname}`}, "User Polls")), 
+	            React.createElement("li", null, React.createElement(Link, {to: `/users/${this.state.profile.nickname}`}, "My Polls")), 
 	    	      React.createElement("li", {className: "login-box", onClick: this.handleLogout}, React.createElement(Button, null, "Sign Out"))
 	    	    )
 	    	  )
@@ -51238,9 +51171,9 @@
 	var FormControl = __webpack_require__(240).FormControl;
 	var ControlLabel = __webpack_require__(240).ControlLabel;
 	var Button = ReactBootstrap.Button;
-	var AppStore = __webpack_require__(509);
-	var PollActions = __webpack_require__(502);
-	var PollPieChart = __webpack_require__(491);
+	var AppStore = __webpack_require__(503);
+	var PollActions = __webpack_require__(509);
+	var PollPieChart = __webpack_require__(492);
 
 	function getPollState() {
 	  return {
@@ -51249,7 +51182,7 @@
 	  };
 	}
 
-	var Test = React.createClass({displayName: "Test",
+	var MyPollView = React.createClass({displayName: "MyPollView",
 
 		getInitialState: function() {
 			return {
@@ -51310,7 +51243,7 @@
 		    	React.createElement("div", null, 
 		    	React.createElement(Modal, {show: this.state.showModal, onHide: this.close}, 
 		    	  React.createElement(Modal.Header, {closeButton: true}, 
-		    	    React.createElement(Modal.Title, null, this.state.poll[2])
+		    	    React.createElement(Modal.Title, null, this.state.poll[0][2])
 		    	  ), 
 		    	  React.createElement(Modal.Body, null, 
 	    	      React.createElement("div", null, 
@@ -51342,7 +51275,7 @@
 	  } 
 	});
 
-	module.exports = Test;
+	module.exports = MyPollView;
 
 /***/ },
 /* 516 */
@@ -51351,8 +51284,8 @@
 	var React = __webpack_require__(1);
 	var MyPollsSelector = __webpack_require__(517);
 	var ReactBootstrap = __webpack_require__(240);
-	var PollActions = __webpack_require__(502);
-	var AppStore = __webpack_require__(509);
+	var PollActions = __webpack_require__(509);
+	var AppStore = __webpack_require__(503);
 
 	function getPollState() {
 	  return {
@@ -51380,7 +51313,6 @@
 		},
 
 	  render: function() {
-	  	// console.log(this.state.pollData);
 	  	var Row = ReactBootstrap.Row;
 	  	var Col = ReactBootstrap.Col;
 	  	var Grid = ReactBootstrap.Grid;
@@ -51408,45 +51340,11 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
-	var ReactBootstrap = __webpack_require__(240);
-	var PollPieChart = __webpack_require__(491);
-	var PollActions = __webpack_require__(502);
-	var AppStore = __webpack_require__(509);
 	var MyPollsModal = __webpack_require__(518);
 
 	var MyPollsSelector = React.createClass({displayName: "MyPollsSelector",
 
-		mixins: [ReactFireMixin],
-
-		getInitialState: function() {
-			return {pollData: this.props.pollData}
-		},
-
-		handleChange: function(e) {
-			var firebaseRef = firebase.database().ref('pollData');
-			var pollIndex = e.target.getAttribute('data-index');
-			var length = this.props.pollData[pollIndex][0].length;
-			var dataArr = this.props.pollData[pollIndex][0];
-			var updatedPoll;
-			var pollKey = e.target.getAttribute('data-key');
-			for (var i = 0; i < length; i++) {
-				if (dataArr[i].label === e.target.value) {
-					this.props.pollData[pollIndex][0][i].value += 1;
-					firebaseRef.child(pollKey).update({0: this.props.pollData[pollIndex][0]});
-					AppStore.emitChange();
-				}
-			}
-		},
-
 		render: function() {
-			var Grid = ReactBootstrap.Grid;
-			var Row = ReactBootstrap.Row;
-			var Col = ReactBootstrap.Col;
-			var FormGroup = ReactBootstrap.FormGroup;
-			var ControlLabel = ReactBootstrap.ControlLabel;
-			var FormControl = ReactBootstrap.FormControl;
-			var Button = ReactBootstrap.Button;
-			var _this = this;
 		  var createItem = function(item, i) {
 		    return React.createElement(MyPollsModal, {
 		    				item: item, 
@@ -51472,65 +51370,17 @@
 	var ReactBootstrap = __webpack_require__(240);
 	var Link = __webpack_require__(175).Link;
 	var Button = __webpack_require__(240).Button;
-	var Modal = __webpack_require__(240).Modal;
-	var OverlayTrigger = __webpack_require__(240).OverlayTrigger;
-	var FormGroup = __webpack_require__(240).FormGroup;
-	var ControlLabel = __webpack_require__(240).ControlLabel;
-	var FormControl = __webpack_require__(240).FormControl;
-	var PollActions = __webpack_require__(502);
-	var PollPieChart = __webpack_require__(491);
-	var AppStore = __webpack_require__(509);
-	var MyPollModalView = __webpack_require__(519);
-
 
 	var MyPollsModal = React.createClass({displayName: "MyPollsModal",
 
-	  getInitialState: function() {
-	    return { showModal: false, pollData: [] };
-	  },
-
-	  close: function() {
-	    this.setState({ showModal: false });
-	  },
-
-	  open: function() {
-	    console.log("open");
-	    this.setState({ showModal: true });
-	  },
-
-	  handleDelete: function(key) {
-	    var userName = this.props.userName;
-	    PollActions.delPoll(key, userName);
-	    this.close();
-	  },
-
-	  handleChange: function(e) {
-	    var firebaseRef = firebase.database().ref('pollData');
-	    var pollIndex = e.target.getAttribute('data-index');
-	    var length = this.props.pollData[pollIndex][0].length;
-	    var dataArr = this.props.pollData[pollIndex][0];
-	    var updatedPoll;
-	    var pollKey = e.target.getAttribute('data-key');
-	    for (var i = 0; i < length; i++) {
-	      if (dataArr[i].label === e.target.value) {
-	        this.props.pollData[pollIndex][0][i].value += 1;
-	        firebaseRef.child(pollKey).update({0: this.props.pollData[pollIndex][0]});
-	        AppStore.emitChange();
-	      }
-	    }
-	  },
-
 	  render: function() {
-
-	    var _this = this;
 	    return (
 	      React.createElement("div", null, 
 	        React.createElement(Link, {to: `/users/${this.props.userName}/${this.props.item['.key']}`}, 
-	        React.createElement(Button, {bsStyle: "primary", bsSize: "large", onClick: this.open, block: true}, 
+	        React.createElement(Button, {bsStyle: "primary", bsSize: "large", block: true}, 
 	          this.props.item[2]
 	        )
-	        ), 
-	        React.createElement(MyPollModalView, {i: this.props.i, item: this.props.item})
+	        )
 	      )
 	    );
 	  }
@@ -51544,112 +51394,11 @@
 
 	var React = __webpack_require__(1);
 	var ReactBootstrap = __webpack_require__(240);
-	var Link = __webpack_require__(175).Link;
-	var Button = __webpack_require__(240).Button;
-	var OverlayTrigger = __webpack_require__(240).OverlayTrigger;
-	var FormGroup = __webpack_require__(240).FormGroup;
-	var ControlLabel = __webpack_require__(240).ControlLabel;
-	var FormControl = __webpack_require__(240).FormControl;
-	var Modal = __webpack_require__(240).Modal;
-	var PollActions = __webpack_require__(502);
-	var PollPieChart = __webpack_require__(491);
-	var AppStore = __webpack_require__(509);
-
-
-	var MyPollModalView = React.createClass({displayName: "MyPollModalView",
-
-	  getInitialState: function() {
-	    return { showModal: false, pollData: [] };
-	  },
-
-	  close: function() {
-	    this.setState({ showModal: false });
-	  },
-
-	  open: function() {
-	    this.setState({ showModal: true });
-	  },
-
-	  handleDelete: function(key) {
-	    var userName = this.props.userName;
-	    PollActions.delPoll(key, userName);
-	    this.close();
-	  },
-
-	  handleChange: function(e) {
-	    var firebaseRef = firebase.database().ref('pollData');
-	    var pollIndex = e.target.getAttribute('data-index');
-	    var length = this.props.pollData[pollIndex][0].length;
-	    var dataArr = this.props.pollData[pollIndex][0];
-	    var updatedPoll;
-	    var pollKey = e.target.getAttribute('data-key');
-	    for (var i = 0; i < length; i++) {
-	      if (dataArr[i].label === e.target.value) {
-	        this.props.pollData[pollIndex][0][i].value += 1;
-	        firebaseRef.child(pollKey).update({0: this.props.pollData[pollIndex][0]});
-	        AppStore.emitChange();
-	      }
-	    }
-	  },
-
-	  render: function() {
-
-	    var _this = this;
-	    return (
-	      React.createElement("div", null, 
-	        React.createElement(Modal, {show: this.props.showModal, onHide: this.close}, 
-	          React.createElement(Modal.Header, {closeButton: true}, 
-	            React.createElement(Modal.Title, null, this.props.item[2])
-	          ), 
-	          React.createElement(Modal.Body, null, 
-
-	              React.createElement("div", {key: this.props.i}, 
-	                React.createElement("div", {className: "row"}, 
-	                  React.createElement(FormGroup, {controlId: "formControlsSelect"}, 
-	                    React.createElement(ControlLabel, null, "Vote"), 
-	                    React.createElement(FormControl, {
-	                      componentClass: "select", 
-	                      key: this.props.i, "data-index": this.props.i, 
-	                      "data-key": this.props.item['.key'], 
-	                      onChange: this.handleChange, 
-	                      defaultValue: "default"}, 
-	                      React.createElement("option", {disabled: true, value: "default"}), 
-	                        this.props.item[0].map(function(subitem, i) {
-	                          return React.createElement("option", {key: i, value: subitem.label}, subitem.label)}, this)
-	                    )
-	                  ), 
-	                  React.createElement(PollPieChart, {data: this.props.item[0]}), 
-	                  React.createElement(Button, {onClick: _this.handleDelete.bind(null, this.props.item['.key']), bsStyle: "danger", block: true}, "Delete")
-	                )
-	              )
-	            
-	          ), 
-	          React.createElement(Modal.Footer, null, 
-	            React.createElement(Button, {onClick: this.close, bsStyle: "info", block: true}, "Close")
-	          )
-	        )
-	      )
-	    );
-	  }
-	});
-	  
-	module.exports = MyPollModalView;
-
-/***/ },
-/* 520 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(1);
-	var OptionSelector = __webpack_require__(521);
-	var ReactBootstrap = __webpack_require__(240);
-	var PollActions = __webpack_require__(502);
-	var AppStore = __webpack_require__(509);
-	var MyPollsModal = __webpack_require__(518);
+	var PollActions = __webpack_require__(509);
+	var AppStore = __webpack_require__(503);
 	var hashHistory = __webpack_require__(175).hashHistory;
 
 	var AddPoll = React.createClass({displayName: "AddPoll",
-
-		mixins: [ReactFireMixin],
 
 		getInitialState: function() {
 			return {
@@ -51665,13 +51414,11 @@
 		componentWillMount: function() {
 			this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
 			var firebaseRef = firebase.database().ref('pollData');
-			this.bindAsArray(firebaseRef, 'pollData');
 		},
 
 		componentDidMount: function() {
 
 		  var userRef = firebase.database().ref('users')
-		  this.bindAsArray(userRef, 'users');
 		  AppStore.addChangeListener(this._onChange);
 
 	  	var idToken = localStorage.getItem('id_token');
@@ -51785,193 +51532,16 @@
 	module.exports = AddPoll;
 
 /***/ },
-/* 521 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(1);
-	var ReactBootstrap = __webpack_require__(240);
-	var PollPieChart = __webpack_require__(491);
-	var PollActions = __webpack_require__(502);
-	var AppStore = __webpack_require__(509);
-	var ExampleModal = __webpack_require__(522);
-
-	var HomeSelector = React.createClass({displayName: "HomeSelector",
-
-		mixins: [ReactFireMixin],
-
-		getInitialState: function() {
-			return {pollData: this.props.pollData}
-		},
-
-		componentWillMount: function() {
-			var firebaseRef = firebase.database().ref('pollData');
-		},
-
-		handleDelete: function(key) {
-			// var firebaseRef = firebase.database().ref('pollData');
-			// firebaseRef.child(key).remove();
-			// AppStore.emitChange();
-
-			PollActions.delPoll(key);
-		},
-
-		handleChange: function(e) {
-			var firebaseRef = firebase.database().ref('pollData');
-			var pollIndex = e.target.getAttribute('data-index');
-			var length = this.props.pollData[pollIndex][0].length;
-			var dataArr = this.props.pollData[pollIndex][0];
-			var updatedPoll;
-			var pollKey = e.target.getAttribute('data-key');
-			for (var i = 0; i < length; i++) {
-				if (dataArr[i].label === e.target.value) {
-					this.props.pollData[pollIndex][0][i].value += 1;
-					firebaseRef.child(pollKey).update({0: this.props.pollData[pollIndex][0]});
-					AppStore.emitChange();
-				}
-			}
-		},
-
-		render: function() {
-			var Grid = ReactBootstrap.Grid;
-			var Row = ReactBootstrap.Row;
-			var Col = ReactBootstrap.Col;
-			var FormGroup = ReactBootstrap.FormGroup;
-			var ControlLabel = ReactBootstrap.ControlLabel;
-			var FormControl = ReactBootstrap.FormControl;
-			var PanelGroup = ReactBootstrap.PanelGroup;
-			var Panel = ReactBootstrap.Panel;
-			var Button = ReactBootstrap.Button;
-			var _this = this;
-			// console.log(this.props.pollData)
-		  var createItem = function(item, i) {
-		    return React.createElement(ExampleModal, {
-		    				item: item, 
-		    				loggedIn: true, 
-		    				i: i, 
-		    				key: i, 
-		    				pollData: this.props.pollData})
-		  };
-		  return 	React.createElement("div", null, 
-								this.props.pollData.map(createItem, this)
-	  					)
-		}
-	})
-
-	module.exports = HomeSelector;
-
-/***/ },
-/* 522 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(1);
-	var ReactBootstrap = __webpack_require__(240);
-	var Button = __webpack_require__(240).Button;
-	var Tooltip = __webpack_require__(240).Tooltip;
-	var Popover = __webpack_require__(240).Popover;
-	var Modal = __webpack_require__(240).Modal;
-	var OverlayTrigger = __webpack_require__(240).OverlayTrigger;
-	var FormGroup = __webpack_require__(240).FormGroup;
-	var ControlLabel = __webpack_require__(240).ControlLabel;
-	var FormControl = __webpack_require__(240).FormControl;
-	var PollActions = __webpack_require__(502);
-	var PollPieChart = __webpack_require__(491);
-	var AppStore = __webpack_require__(509);
-
-
-	var ExampleModal = React.createClass({displayName: "ExampleModal",
-
-	  getInitialState: function() {
-	    return { showModal: false, pollData: [] };
-	  },
-
-	  close: function() {
-	    this.setState({ showModal: false });
-	  },
-
-	  open: function() {
-	    this.setState({ showModal: true });
-	  },
-
-	  handleDelete: function(key) {
-	    PollActions.delPoll(key);
-	    this.close();
-	  },
-
-	  handleChange: function(e) {
-	    var firebaseRef = firebase.database().ref('pollData');
-	    var pollIndex = e.target.getAttribute('data-index');
-	    var length = this.props.pollData[pollIndex][0].length;
-	    var dataArr = this.props.pollData[pollIndex][0];
-	    var updatedPoll;
-	    var pollKey = e.target.getAttribute('data-key');
-	    for (var i = 0; i < length; i++) {
-	      if (dataArr[i].label === e.target.value) {
-	        this.props.pollData[pollIndex][0][i].value += 1;
-	        firebaseRef.child(pollKey).update({0: this.props.pollData[pollIndex][0]});
-	        AppStore.emitChange();
-	      }
-	    }
-	  },
-
-	  render: function() {
-
-	    var _this = this;
-	    return (
-	      React.createElement("div", null, 
-	        React.createElement(Button, {bsStyle: "primary", bsSize: "large", onClick: this.open}, 
-	          "Launch demo modal"
-	        ), 
-
-	        React.createElement(Modal, {show: this.state.showModal, onHide: this.close}, 
-	          React.createElement(Modal.Header, {closeButton: true}, 
-	            React.createElement(Modal.Title, null, "Modal heading")
-	          ), 
-	          React.createElement(Modal.Body, null, 
-
-	              React.createElement("div", {key: this.props.i}, 
-	                React.createElement("div", {className: "row"}, 
-	                  React.createElement(FormGroup, {controlId: "formControlsSelect"}, 
-	                    React.createElement(ControlLabel, null, item[2]), 
-	                    React.createElement(FormControl, {
-	                      componentClass: "select", 
-	                      key: this.props.i, "data-index": this.props.i, 
-	                      "data-key": this.props.item['.key'], 
-	                      onChange: this.handleChange, 
-	                      defaultValue: "default"}, 
-	                      React.createElement("option", {disabled: true, value: "default"}), 
-	                        this.props.item[0].map(function(subitem, i) {
-	                          return React.createElement("option", {key: i, value: subitem.label}, subitem.label)}, this)
-	                    )
-	                  ), 
-	                  React.createElement(PollPieChart, {data: this.props.item[0]}), 
-	                  React.createElement(Button, {onClick: _this.handleDelete.bind(null, this.props.item['.key']), bsStyle: "danger"}, "Delete")
-	                ), 
-	                React.createElement("hr", null)
-	              )
-	            
-	          ), 
-	          React.createElement(Modal.Footer, null, 
-	            React.createElement(Button, {onClick: this.close}, "Close")
-	          )
-	        )
-	      )
-	    );
-	  }
-	});
-	  
-	module.exports = ExampleModal;
-
-/***/ },
-/* 523 */
+/* 520 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(524);
+	var content = __webpack_require__(521);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(526)(content, {});
+	var update = __webpack_require__(523)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -51988,21 +51558,21 @@
 	}
 
 /***/ },
-/* 524 */
+/* 521 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(525)();
+	exports = module.exports = __webpack_require__(522)();
 	// imports
 
 
 	// module
-	exports.push([module.id, "ul.pie-legend {\n  text-align: center;\n  list-style: none;\n  padding: 30px 0; }\n\nheader {\n  margin-bottom: 40px; }\n\n.active {\n  color: #000; }\n\na:hover, a:active, a:visited, a:focus {\n  text-decoration: none; }\n\n.pie-legend li {\n  display: inline-block; }\n\n.pie-legend span {\n  padding: 10px; }\n\nspan.pie-legend-icon {\n  margin: 5px; }\n\nnav ul li {\n  display: inline-block;\n  margin: 10px; }\n\n#new-todo {\n  padding: 20px; }\n\ndiv.modal-header {\n  text-align: center; }\n\ndiv.modal-content {\n  padding-left: 30px;\n  padding-right: 30px; }\n\n.chart {\n  display: flex;\n  justify-content: center; }\n\n.pie-legend {\n  display: flex;\n  flex-direction: column; }\n\n.pie-legend li {\n  margin-top: 20px;\n  text-align: left; }\n\ndiv.chart {\n  margin-bottom: 20px; }\n\ndiv.modal-footer {\n  padding-left: 0;\n  padding-right: 0; }\n\n@media (max-width: 500px) {\n  .chart {\n    display: flex;\n    flex-direction: column-reverse; }\n  .legend {\n    margin: 0 auto; } }\n", ""]);
+	exports.push([module.id, "ul.pie-legend {\n  text-align: center;\n  list-style: none;\n  padding: 30px 0; }\n\nheader {\n  margin-bottom: 40px; }\n\n.active {\n  color: #000; }\n\na:hover, a:active, a:visited, a:focus {\n  text-decoration: none; }\n\n.pie-legend li {\n  display: inline-block; }\n\n.pie-legend span {\n  padding: 10px; }\n\nspan.pie-legend-icon {\n  margin: 5px; }\n\nnav ul li {\n  display: inline-block;\n  margin: 10px; }\n\n#new-todo {\n  padding: 20px; }\n\ndiv.modal-header {\n  text-align: center; }\n\ndiv.modal-content {\n  padding-left: 30px;\n  padding-right: 30px; }\n\n.chart {\n  display: flex;\n  justify-content: center; }\n\n.pie-legend {\n  display: flex;\n  flex-direction: column; }\n  .pie-legend li {\n    margin-top: 20px;\n    text-align: left; }\n\ndiv.chart {\n  margin-bottom: 20px; }\n\ndiv.modal-footer {\n  padding-left: 0;\n  padding-right: 0; }\n\n@media (max-width: 500px) {\n  .chart {\n    display: flex;\n    flex-direction: column-reverse; }\n  .legend {\n    margin: 0 auto; } }\n", ""]);
 
 	// exports
 
 
 /***/ },
-/* 525 */
+/* 522 */
 /***/ function(module, exports) {
 
 	/*
@@ -52058,7 +51628,7 @@
 
 
 /***/ },
-/* 526 */
+/* 523 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*

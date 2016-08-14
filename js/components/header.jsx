@@ -47,7 +47,7 @@ var Header = React.createClass({
     	    <ul>
     	      <li><Link to="/home" activeClassName="active">Home</Link></li>
     	      <li><Link to="/addpoll" activeClassName="active">Add Poll</Link></li>
-            <li><Link to={`/users/${this.state.profile.nickname}`}>User Polls</Link></li>
+            <li><Link to={`/users/${this.state.profile.nickname}`}>My Polls</Link></li>
     	      <li className="login-box" onClick={this.handleLogout}><Button>Sign Out</Button></li>
     	    </ul>
     	  </nav>

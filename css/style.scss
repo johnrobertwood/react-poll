@@ -30,50 +30,52 @@ span.pie-legend-icon {
 }
 
 nav ul li {
-	display: inline-block;
-	margin: 10px;
-} 
+  display: inline-block;
+  margin: 10px;
+}
 
 #new-todo {
   padding: 20px;
 }
 
-div.modal-header {
-  text-align: center;
-}
-
-div.modal-content {
-  padding-left: 30px;
-  padding-right: 30px;
+div {
+  &.modal-header {
+    text-align: center;
+  }
+  &.modal-content {
+    padding-left: 30px;
+    padding-right: 30px;
+  }
 }
 
 .chart {
   display: flex;
   justify-content: center;
 }
+
 .pie-legend {
   display: flex;
   flex-direction: column;
+  li {
+    margin-top: 20px;
+    text-align: left;
+  }
 }
 
-.pie-legend li {
-  margin-top: 20px;
-  text-align: left;
-}
-
-div.chart {
-  margin-bottom: 20px;
-}
-
-div.modal-footer {
-  padding-left: 0;
-  padding-right: 0;
+div {
+  &.chart {
+    margin-bottom: 20px;
+  }
+  &.modal-footer {
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
 
 @media (max-width: 500px) {
   .chart {
-  display: flex;
-  flex-direction: column-reverse;
+    display: flex;
+    flex-direction: column-reverse;
   }
   .legend {
     margin: 0 auto;

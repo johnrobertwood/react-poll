@@ -8,7 +8,7 @@ var ControlLabel = require('react-bootstrap').ControlLabel;
 var Button = ReactBootstrap.Button;
 var AppStore = require("../stores/AppStore.jsx");
 var PollActions = require("../actions/PollActions.jsx");
-var PollPieChart = require('./pie-chart.jsx');
+var PollPieChart = require('./poll-pie-chart.jsx');
 
 function getPollState() {
   return {
@@ -17,7 +17,7 @@ function getPollState() {
   };
 }
 
-var Test = React.createClass({
+var MyPollView = React.createClass({
 
 	getInitialState: function() {
 		return {
@@ -78,7 +78,7 @@ var Test = React.createClass({
 	    	<div>
 	    	<Modal show={this.state.showModal} onHide={this.close}>
 	    	  <Modal.Header closeButton>
-	    	    <Modal.Title>{this.state.poll[2]}</Modal.Title>
+	    	    <Modal.Title>{this.state.poll[0][2]}</Modal.Title>
 	    	  </Modal.Header>
 	    	  <Modal.Body>
     	      <div>
@@ -110,4 +110,4 @@ var Test = React.createClass({
   } 
 });
 
-module.exports = Test;
+module.exports = MyPollView;

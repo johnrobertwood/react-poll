@@ -93,11 +93,7 @@ function getUserPolls(user) {
 
 function delPoll(key, userName) {
   var firebaseRef = firebase.database().ref('pollData');
-  // firebaseRef.child(key).set(null, function() {
-  //   getUserPolls(userName);
-  // })  
   firebaseRef.child(key).remove()
-  console.log(userPolls);
   userPolls = userPolls.filter(function(poll) {
     return poll['.key'] !== key;
   })

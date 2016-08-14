@@ -1,15 +1,11 @@
 var React = require('react');
 var ReactBootstrap = require('react-bootstrap');
 var Button = require('react-bootstrap').Button;
-var Tooltip = require('react-bootstrap').Tooltip;
-var Popover = require('react-bootstrap').Popover;
 var Modal = require('react-bootstrap').Modal;
-var OverlayTrigger = require('react-bootstrap').OverlayTrigger;
 var FormGroup = require('react-bootstrap').FormGroup;
 var ControlLabel = require('react-bootstrap').ControlLabel;
 var FormControl = require('react-bootstrap').FormControl;
-var PollActions = require('../actions/PollActions.jsx');
-var PollPieChart = require('./pie-chart.jsx');
+var PollPieChart = require('./poll-pie-chart.jsx');
 var AppStore = require('../stores/AppStore.jsx');
 
 
@@ -25,11 +21,6 @@ var ExampleModal = React.createClass({
 
   open: function() {
     this.setState({ showModal: true });
-  },
-
-  handleDelete: function(key) {
-    PollActions.delPoll(key);
-    this.close();
   },
 
   handleChange: function(e) {

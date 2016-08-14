@@ -6,11 +6,9 @@ var hashHistory = require('react-router').hashHistory;
 var IndexRoute = require('react-router').IndexRoute;
 var Home = require('./components/home.jsx');
 var App = require('./components/app.jsx');
-var Login = require('./components/login.jsx');
-var Test = require('./components/test.jsx');
+var MyPollView = require('./components/my-poll-view.jsx');
 var UserPolls = require('./components/user-polls.jsx');
 var AddPoll = require('./components/add-poll.jsx');
-var MyPollModalView = require('./components/my-poll-modal-view.jsx');
 require("../css/style.scss");
 
 
@@ -21,7 +19,7 @@ ReactDOM.render(
 	    <Route path="/addpoll" component={AddPoll} />
 	    <Route path="/home" component={Home} />
       <Route path="/users/:userName" component={UserPolls} />
-      <Route path="/users/:userName/:key" component={Test} />
+      <Route path="/users/:userName/:key" component={MyPollView} />
       <Route path="*" component={Home} />
     </Route>
   </Router>,
