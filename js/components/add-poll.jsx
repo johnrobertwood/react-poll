@@ -55,6 +55,7 @@ var AddPoll = React.createClass({
 	_onChange: function() {
 	  console.log("change listener");
 	},
+
 	handleInputTitle: function(e) {
 		this.setState({title: e.target.value});
 	},
@@ -90,7 +91,8 @@ var AddPoll = React.createClass({
 
 		this.setState({text: nextText, title: nextTitle});
 
-		hashHistory.push('/');
+		hashHistory.push(`/users/${this.state.profile.nickname}`);
+		
 	},
 
   render: function() {

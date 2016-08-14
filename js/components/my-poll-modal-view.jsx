@@ -2,18 +2,17 @@ var React = require('react');
 var ReactBootstrap = require('react-bootstrap');
 var Link = require('react-router').Link;
 var Button = require('react-bootstrap').Button;
-var Modal = require('react-bootstrap').Modal;
 var OverlayTrigger = require('react-bootstrap').OverlayTrigger;
 var FormGroup = require('react-bootstrap').FormGroup;
 var ControlLabel = require('react-bootstrap').ControlLabel;
 var FormControl = require('react-bootstrap').FormControl;
+var Modal = require('react-bootstrap').Modal;
 var PollActions = require('../actions/PollActions.jsx');
 var PollPieChart = require('./pie-chart.jsx');
 var AppStore = require('../stores/AppStore.jsx');
-var MyPollModalView = require('./my-poll-modal-view.jsx');
 
 
-var MyPollsModal = React.createClass({
+var MyPollModalView = React.createClass({
 
   getInitialState: function() {
     return { showModal: false, pollData: [] };
@@ -24,7 +23,6 @@ var MyPollsModal = React.createClass({
   },
 
   open: function() {
-    console.log("open");
     this.setState({ showModal: true });
   },
 
@@ -55,15 +53,40 @@ var MyPollsModal = React.createClass({
     var _this = this;
     return (
       <div>
-        <Link to={`/users/${this.props.userName}/${this.props.item['.key']}`}>
-        <Button bsStyle="primary" bsSize="large" onClick={this.open} block>
-          {this.props.item[2]}
-        </Button>
-        </Link>
-        <MyPollModalView i={this.props.i} item={this.props.item} />
+        <Modal show={this.props.showModal} onHide={this.close}>
+          <Modal.Header closeButton>
+            <Modal.Title>{this.props.item[2]}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+
+              <div key={this.props.i}>
+                <div className="row">
+                  <FormGroup controlId="formControlsSelect">
+                    <ControlLabel>Vote</ControlLabel>
+                    <FormControl 
+                      componentClass="select" 
+                      key={this.props.i} data-index={this.props.i} 
+                      data-key={this.props.item['.key']} 
+                      onChange={this.handleChange} 
+                      defaultValue="default">
+                      <option disabled value="default"></option>
+                        {this.props.item[0].map(function(subitem, i) {
+                          return <option key={i} value={subitem.label}>{subitem.label}</option>}, this)}
+                    </FormControl>
+                  </FormGroup>
+                  <PollPieChart data={this.props.item[0]} />
+                  <Button onClick={_this.handleDelete.bind(null, this.props.item['.key'])} bsStyle="danger" block>Delete</Button>
+                </div>
+              </div>
+            
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={this.close} bsStyle="info" block>Close</Button>
+          </Modal.Footer>
+        </Modal>
       </div>
     );
   }
 });
   
-module.exports = MyPollsModal;
+module.exports = MyPollModalView;

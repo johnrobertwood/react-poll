@@ -10,12 +10,45 @@ var userPolls = [];
 
 var polls = [];
 
+var poll = [];
+
+var showModal = true;
+
 function logIn() {
   loggedIn = true;
 }
 
 function logOut() {
   loggedIn = false;
+}
+
+function hideModal() {
+  showModal = false;
+}
+
+function resetModal() {
+  showModal = true;
+}
+
+function getPoll(key) {
+  polls = [];
+  firebase.database().ref('pollData').once('value', function(snapshot) {
+    var obj = snapshot.val();
+    for (var prop in obj) {
+      item = [];
+      item.push(obj[prop][0])
+      item[1] = obj[prop][1] 
+      item[2] = obj[prop][2]
+      item[".key"] = prop;
+      polls.push(item);
+    }
+
+    poll = polls.filter(function(poll) {
+      return poll[".key"] === key;
+    })
+    AppStore.emitChange();
+  })
+  return poll;
 }
 
 function getAllPolls() {
@@ -33,6 +66,7 @@ function getAllPolls() {
 
     AppStore.emitChange()
   });
+  return polls;
 }
 
 function getUserPolls(user) {
@@ -52,22 +86,31 @@ function getUserPolls(user) {
     userPolls = userPolls.filter(function(poll) {
       return poll[1] === user;
     })
-
     AppStore.emitChange();
+    return userPolls;
   });
-
 }
 
 function delPoll(key, userName) {
-
   var firebaseRef = firebase.database().ref('pollData');
-  firebaseRef.child(key).set(null, function() {
-    getUserPolls(userName);
+  // firebaseRef.child(key).set(null, function() {
+  //   getUserPolls(userName);
+  // })  
+  firebaseRef.child(key).remove()
+  console.log(userPolls);
+  userPolls = userPolls.filter(function(poll) {
+    return poll['.key'] !== key;
   })
-
+  hideModal();
+  AppStore.emitChange();
+  resetModal();
 }
 
 var AppStore = assign({}, EventEmitter.prototype, {
+
+  getPoll: function() {
+    return poll;
+  },
 
   getUserPolls: function() {
     return userPolls;
@@ -91,7 +134,11 @@ var AppStore = assign({}, EventEmitter.prototype, {
 
   removeChangeListener: function(callback) {
     this.removeListener(CHANGE_EVENT, callback);
-  } 
+  },
+
+  getModalStatus: function() {
+    return showModal;
+  }
   
 });
 
@@ -111,6 +158,10 @@ AppDispatcher.register(function(action){
   if (action.actionType === "ADD_ITEM") {
     firebase.database().ref('pollData').push(action.item);
     AppStore.emitChange();
+  }
+
+  if (action.actionType === "GET_POLL") {
+    getPoll(action.key);
   }
 
   if (action.actionType === "GET_USER_POLLS") {

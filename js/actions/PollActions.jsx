@@ -22,6 +22,13 @@ var PollActions = {
     });
   },
 
+  getPoll: function(key) {
+    AppDispatcher.dispatch({
+      actionType: PollConstants.GET_POLL,
+      key: key
+    });
+  },
+
   getUserPolls: function(user) {
     AppDispatcher.dispatch({
       actionType: PollConstants.GET_USER_POLLS,
@@ -41,7 +48,7 @@ var PollActions = {
       key: key,
       userName: userName
     })
-  }
+  },
 
 };
 
