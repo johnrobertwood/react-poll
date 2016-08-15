@@ -1,6 +1,5 @@
 var React = require('react');
 var MyPollsModal = require('./my-polls-modal.jsx');
-var HomeModal = require('./home-modal.jsx');
 
 var MyPollsSelector = React.createClass({
 

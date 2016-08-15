@@ -14,6 +14,8 @@ var poll = [];
 
 var showModal = true;
 
+var user = '';
+
 function logIn() {
   loggedIn = true;
 }
@@ -120,6 +122,10 @@ var AppStore = assign({}, EventEmitter.prototype, {
     return loggedIn;
   },
 
+  getUser: function() {
+    return user;
+  },
+
   emitChange: function() {
     this.emit(CHANGE_EVENT);
   },
@@ -172,6 +178,11 @@ AppDispatcher.register(function(action){
   if (action.actionType === "DEL_POLL") {
     delPoll(action.key, action.userName);
     AppStore.emitChange();
+  }
+
+  if (action.actionType === "CURRENT_USER") {
+    user = action.user;
+    console.log(user);
   }
   
   return true;

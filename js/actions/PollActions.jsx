@@ -42,13 +42,20 @@ var PollActions = {
     })
   },
 
-  delPoll: function(key, userName) {
+  delPoll: function(key, user) {
     AppDispatcher.dispatch({
       actionType: PollConstants.DEL_POLL,
       key: key,
-      userName: userName
-    })
+      userName: user
+    });
   },
+
+  setCurrentUser: function(user) {
+    AppDispatcher.dispatch({
+      actionType: PollConstants.CURRENT_USER,
+      user: user
+    });
+  }
 
 };
 

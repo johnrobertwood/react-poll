@@ -14,8 +14,7 @@ var DeleteButton = require('./delete-button.jsx');
 function getPollState() {
   return {
     poll: AppStore.getPoll(),
-    showModal: AppStore.getModalStatus(),
-    user: AppStore.getUser()
+    showModal: AppStore.getModalStatus()
   };
 }
 
@@ -29,8 +28,8 @@ var MyPollView = React.createClass({
 
 	componentWillMount: function() {
 		PollActions.getPoll(this.props.params.key);
+		// PollActions.getPoll(this.state.userName);
 		this.setState({showModal: true})
-
 	},
 
 	componentDidMount: function() {
@@ -47,7 +46,11 @@ var MyPollView = React.createClass({
 
 	close: function() {
 	  this.setState({ showModal: false });
-	  hashHistory.push(`/users/mypolls/${this.props.params.userName}`)
+	  if (localStorage.getItem('user_name') === this.props.params.user) {
+	  	hashHistory.push(`/users/mypolls/${this.props.params.user}`)
+	  } else {
+		  hashHistory.push('/home');
+	  }
 	},
 
 	handleChange: function(e) {
@@ -66,8 +69,15 @@ var MyPollView = React.createClass({
 	  }
 	},
 
+	handleDelete: function(key) {
+	  var userName = this.props.params.userName;
+	  PollActions.delPoll(key, userName);
+	  hashHistory.push(`/users/${this.props.params.userName}`)
+	},
+
   render: function() {
   	var _this = this;
+  	console.log(this.props.params.userName);
   	if (!this.state.poll) {
 			return (<div></div>)
 		} else {
@@ -93,8 +103,7 @@ var MyPollView = React.createClass({
     	            </FormControl>
     	          </FormGroup>
     	          <PollPieChart data={this.state.poll[0][0]} />
-
-    	          <DeleteButton userName={this.props.params.userName} keyName={this.state.poll[0]['.key']} />
+    	          	<DeleteButton userName={this.props.params.userName} keyName={this.state.poll[0]['.key']} />	
     	        </div>
     	      </div>
 	    	  </Modal.Body>

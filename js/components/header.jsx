@@ -26,12 +26,15 @@ var Header = React.createClass({
           return;
         }
         this.setState({profile: profile});
+        localStorage.setItem('user_name', profile.nickname);
+        PollActions.setCurrentUser(profile.nickname);
       }.bind(this));
     }
   },
 
 	handleLogout: function() {
 		localStorage.removeItem('id_token');
+    localStorage.removeItem('user_name');
 		hashHistory.push('/');
 		PollActions.logOut();
 	},
