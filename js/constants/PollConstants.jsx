@@ -1,7 +1,7 @@
 var keyMirror = require('keymirror');
 
 module.exports = keyMirror({
-  ADD_ITEM: null,
+  ADD_POLL: null,
   REMOVE_ITEM: null,
   LOG_IN: null,
   LOG_OUT: null,
@@ -9,6 +9,5 @@ module.exports = keyMirror({
   GET_POLL: null,
   GET_ALL_POLLS: null,
   GET_USER_POLLS: null,
-  DEL_POLL: null,
-  CURRENT_USER: null
+  DEL_POLL: null
 });

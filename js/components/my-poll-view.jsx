@@ -10,12 +10,12 @@ var AppStore = require("../stores/AppStore.jsx");
 var PollActions = require("../actions/PollActions.jsx");
 var PollPieChart = require('./poll-pie-chart.jsx');
 var DeleteButton = require('./delete-button.jsx');
+var TwitterButton = require('react-social').TwitterButton;
 
 function getPollState() {
   return {
     poll: AppStore.getPoll(),
-    showModal: AppStore.getModalStatus(),
-    user: AppStore.getUser()
+    showModal: AppStore.getModalStatus()
   };
 }
 
@@ -100,6 +100,7 @@ var MyPollView = React.createClass({
 	    	  </Modal.Body>
 	    	  <Modal.Footer>
 	    	    <Button onClick={this.close} bsStyle="info" block>Close</Button>
+						<TwitterButton className="twitter-button">Tweet</TwitterButton>
 	    	  </Modal.Footer>
 	    	</Modal>
 	  		</div>

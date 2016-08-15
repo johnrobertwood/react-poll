@@ -4,6 +4,7 @@ var PollActions = require('../actions/PollActions.jsx');
 var AppStore = require('../stores/AppStore.jsx');
 var hashHistory = require('react-router').hashHistory;
 
+
 var AddPoll = React.createClass({
 
 	getInitialState: function() {
@@ -61,7 +62,7 @@ var AddPoll = React.createClass({
 	handleSubmit: function(e) {
 		e.preventDefault();
 		var title = this.state.title;
-		var parseText = this.state.text.split(' ').join('').split(',');
+		var parseText = this.state.text.split(',');
 		var choices = parseText.map(function(item) {return [item];});
 		var colors = choices.map(function() {
 			return '#'+'0123456789abcdef'.split('').map(function(v,i,a){

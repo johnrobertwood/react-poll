@@ -15,10 +15,10 @@ var PollActions = {
     });
   },
   
-  addPoll: function(item) {
+  addPoll: function(poll) {
     AppDispatcher.dispatch({
-      actionType: PollConstants.ADD_ITEM,
-      item: item
+      actionType: PollConstants.ADD_POLL,
+      poll: poll
     });
   },
 

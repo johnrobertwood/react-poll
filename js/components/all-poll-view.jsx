@@ -28,7 +28,6 @@ var MyPollView = React.createClass({
 
 	componentWillMount: function() {
 		PollActions.getPoll(this.props.params.key);
-		// PollActions.getPoll(this.state.userName);
 		this.setState({showModal: true})
 	},
 
@@ -59,11 +58,14 @@ var MyPollView = React.createClass({
 	  var pollKey = this.props.params.key;
 	  var length = this.state.poll[0].length;
 	  var dataArr = this.state.poll[0];
-	  var updatedPoll;
+	  var localUser = localStorage.getItem('user_name');
 	  for (var i = 0; i < length - 1; i++) {
 	    if (dataArr[0][i].label === e.target.value) {
 	      this.state.poll[0][0][i].value += 1;
 	      firebaseRef.child(pollKey).update({0: this.state.poll[0][0]});
+	      firebaseRef.child(pollKey).push({voter: localUser})
+
+
 	      AppStore.emitChange();
 	    }
 	  }
@@ -77,7 +79,6 @@ var MyPollView = React.createClass({
 
   render: function() {
   	var _this = this;
-  	console.log(this.props.params.userName);
   	if (!this.state.poll) {
 			return (<div></div>)
 		} else {
