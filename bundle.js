@@ -53,11 +53,11 @@
 	var Home = __webpack_require__(238);
 	var App = __webpack_require__(502);
 	var MyPollView = __webpack_require__(505);
-	var AllPolls = __webpack_require__(518);
-	var MyPolls = __webpack_require__(519);
-	var AllPollView = __webpack_require__(521);
-	var AddPoll = __webpack_require__(522);
-	__webpack_require__(523);
+	var AllPolls = __webpack_require__(519);
+	var MyPolls = __webpack_require__(520);
+	var AllPollView = __webpack_require__(522);
+	var AddPoll = __webpack_require__(524);
+	__webpack_require__(525);
 
 	ReactDOM.render(
 	  React.createElement(Router, {history: hashHistory}, 
@@ -27145,14 +27145,13 @@
 	  	var Grid = ReactBootstrap.Grid;
 		    return (
 		    	React.createElement("div", null, 
+			    	React.createElement("h2", null, "Vote on a Poll or Create Your Own"), 
 			  		React.createElement(Grid, null, 
 			  			React.createElement(Row, null, 
-								React.createElement(Col, {xs: 12, md: 6, mdOffset: 3}, 
-									React.createElement(AllPollsSelector, {
-									 pollData: this.state.pollData, 
-									 userName: this.props.params.userName, 
-									 loggedIn: true})
-								)
+								React.createElement(AllPollsSelector, {
+								 pollData: this.state.pollData, 
+								 userName: this.props.params.userName, 
+								 loggedIn: true})
 							)
 			  		)
 		  		)
@@ -45859,10 +45858,10 @@
 	    });
 	  },
 	  
-	  addPoll: function(item) {
+	  addPoll: function(poll) {
 	    AppDispatcher.dispatch({
-	      actionType: PollConstants.ADD_ITEM,
-	      item: item
+	      actionType: PollConstants.ADD_POLL,
+	      poll: poll
 	    });
 	  },
 
@@ -45898,6 +45897,14 @@
 	    AppDispatcher.dispatch({
 	      actionType: PollConstants.CURRENT_USER,
 	      user: user
+	    });
+	  },
+
+	  newOption: function(key, option) {
+	    AppDispatcher.dispatch({
+	      actionType: PollConstants.NEW_OPTION,
+	      key: key,
+	      option: option
 	    });
 	  }
 
@@ -46229,7 +46236,7 @@
 	var keyMirror = __webpack_require__(496);
 
 	module.exports = keyMirror({
-	  ADD_ITEM: null,
+	  ADD_POLL: null,
 	  REMOVE_ITEM: null,
 	  LOG_IN: null,
 	  LOG_OUT: null,
@@ -46238,7 +46245,7 @@
 	  GET_ALL_POLLS: null,
 	  GET_USER_POLLS: null,
 	  DEL_POLL: null,
-	  CURRENT_USER: null
+	  NEW_OPTION: null
 	});
 
 
@@ -46339,7 +46346,13 @@
 	  showModal = true;
 	}
 
-	function getPoll(key) {
+	function addPoll(poll) {
+	  firebase.database().ref('pollData').push(poll, function() {
+	    AppStore.emitChange();
+	  });
+	}
+
+	function getPolls(key) {
 	  polls = [];
 	  firebase.database().ref('pollData').once('value', function(snapshot) {
 	    var obj = snapshot.val();
@@ -46411,6 +46424,25 @@
 	  resetModal();
 	}
 
+	function newOption(key, option) {
+	  var firebaseRef = firebase.database().ref('pollData');
+
+	  var obj = {}
+	  obj.label = option;
+	  obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+	      return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+	  obj.value = 1;
+	  var firebaseRef = firebase.database().ref('pollData').child(key);
+	  firebaseRef.once('value', function(snap) {
+	    var arr = snap.val();
+	    arr[0].push(obj)
+	    console.log(arr[0])
+	    firebaseRef.set(arr);
+	  });
+
+	  AppStore.emitChange();
+	}
+
 	var AppStore = assign({}, EventEmitter.prototype, {
 
 	  getPoll: function() {
@@ -46464,17 +46496,15 @@
 	    AppStore.emitChange();
 	  }
 
-	  if (action.actionType === "ADD_ITEM") {
-	    firebase.database().ref('pollData').push(action.item);
-	    AppStore.emitChange();
+	  if (action.actionType === "ADD_POLL") {
+	    addPoll(action.poll);
 	  }
 
 	  if (action.actionType === "GET_POLL") {
-	    getPoll(action.key);
+	    getPolls(action.key);
 	  }
 
 	  if (action.actionType === "GET_USER_POLLS") {
-
 	    getUserPolls(action.user); 
 	  }
 
@@ -46484,12 +46514,10 @@
 
 	  if (action.actionType === "DEL_POLL") {
 	    delPoll(action.key, action.userName);
-	    AppStore.emitChange();
 	  }
 
-	  if (action.actionType === "CURRENT_USER") {
-	    user = action.user;
-	    console.log(user);
+	  if (action.actionType === "NEW_OPTION") {
+	    newOption(action.option);
 	  }
 	  
 	  return true;
@@ -46826,7 +46854,6 @@
 		  		return (
 		  			React.createElement(AllPollsModal, {
 							item: item, 
-							loggedIn: false, 
 							i: i, 
 							key: i, 
 							pollData: this.props.pollData, 
@@ -46849,14 +46876,15 @@
 	var ReactBootstrap = __webpack_require__(239);
 	var Link = __webpack_require__(175).Link;
 	var Button = __webpack_require__(239).Button;
+	var Col = __webpack_require__(239).Col;
 
 	var MyPollsModal = React.createClass({displayName: "MyPollsModal",
 
 	  render: function() {
 	    return (
-	      React.createElement("div", null, 
+	      React.createElement(Col, {xs: 12, md: 4}, 
 	        React.createElement(Link, {to: `/users/mypolls/${this.props.userName}/${this.props.item['.key']}`}, 
-	        React.createElement(Button, {bsStyle: "primary", bsSize: "large", block: true}, 
+	        React.createElement(Button, {bsStyle: "primary", bsSize: "large", className: "poll-button", block: true}, 
 	          this.props.item[2]
 	        )
 	        )
@@ -46875,18 +46903,19 @@
 	var ReactBootstrap = __webpack_require__(239);
 	var Link = __webpack_require__(175).Link;
 	var Button = __webpack_require__(239).Button;
+	var Col = __webpack_require__(239).Col;
 
 	var AllPollsModal = React.createClass({displayName: "AllPollsModal",
 
 	  render: function() {
 	    return (
-	      React.createElement("div", null, 
-	        React.createElement(Link, {to: `/users/allpolls/${this.props.userName}/${this.props.item['.key']}`}, 
-	        React.createElement(Button, {bsStyle: "primary", bsSize: "large", block: true}, 
-	          this.props.item[2]
+	        React.createElement(Col, {xs: 12, md: 4}, 
+	          React.createElement(Link, {to: `/users/allpolls/${this.props.userName}/${this.props.item['.key']}`}, 
+	          React.createElement(Button, {bsStyle: "primary", bsSize: "large", className: "poll-button", block: true}, 
+	            this.props.item[2]
+	          )
+	          )
 	        )
-	        )
-	      )
 	    );
 	  }
 	});
@@ -47105,12 +47134,12 @@
 	var PollActions = __webpack_require__(490);
 	var PollPieChart = __webpack_require__(506);
 	var DeleteButton = __webpack_require__(517);
+	var TwitterButton = __webpack_require__(518).TwitterButton;
 
 	function getPollState() {
 	  return {
 	    poll: AppStore.getPoll(),
-	    showModal: AppStore.getModalStatus(),
-	    user: AppStore.getUser()
+	    showModal: AppStore.getModalStatus()
 	  };
 	}
 
@@ -47149,10 +47178,10 @@
 		  var firebaseRef = firebase.database().ref('pollData');
 		  var pollIndex = e.target.getAttribute('data-index');
 		  var pollKey = this.props.params.key;
-		  var length = this.state.poll[0].length;
+		  var length = this.state.poll[0][0].length;
 		  var dataArr = this.state.poll[0];
 		  var updatedPoll;
-		  for (var i = 0; i < length - 1; i++) {
+		  for (var i = 0; i < length; i++) {
 		    if (dataArr[0][i].label === e.target.value) {
 		      this.state.poll[0][0][i].value += 1;
 		      firebaseRef.child(pollKey).update({0: this.state.poll[0][0]});
@@ -47162,7 +47191,6 @@
 		},
 
 	  render: function() {
-	  	var _this = this;
 	  	if (!this.state.poll) {
 				return (React.createElement("div", null))
 			} else {
@@ -47188,13 +47216,13 @@
 	    	            )
 	    	          ), 
 	    	          React.createElement(PollPieChart, {data: this.state.poll[0][0]}), 
-
 	    	          React.createElement(DeleteButton, {userName: this.props.params.userName, keyName: this.state.poll[0]['.key']})
 	    	        )
 	    	      )
 		    	  ), 
 		    	  React.createElement(Modal.Footer, null, 
 		    	    React.createElement(Button, {onClick: this.close, bsStyle: "info", block: true}, "Close")
+							
 		    	  )
 		    	)
 		  		)
@@ -47218,11 +47246,6 @@
 			var legend = this.refs.chart.getChart().generateLegend();
 			this.setState({legend: legend});
 		},
-
-	  componentWillReceiveProps: function() {
-	    var legend = this.refs.chart.getChart().generateLegend();
-	    this.setState({legend: legend});
-	  },
 
 	  render: function() {
 
@@ -47249,12 +47272,12 @@
 	  	    animationEasing : "easeOutBounce",
 
 	  	    //Boolean - Whether we animate the rotation of the Doughnut
-	  	    animateRotate : true,
+	  	    animateRotate : false,
 
 	  	    //Boolean - Whether we animate scaling the Doughnut from the centre
-	  	    animateScale : true
+	  	    animateScale : false
 	  	}
-			 	
+
 	    return (
 	    	React.createElement("div", {className: "chart"}, 
 		    	React.createElement("div", {className: "legend", dangerouslySetInnerHTML: { __html: legend}}), 
@@ -51247,6 +51270,7 @@
 	var ReactBootstrap = __webpack_require__(239);
 	var PollActions = __webpack_require__(490);
 	var hashHistory = __webpack_require__(175).hashHistory;
+	var TwitterButton = __webpack_require__(518).TwitterButton
 
 	var DeleteButton = React.createClass({displayName: "DeleteButton",
 
@@ -51270,7 +51294,10 @@
 			var _this = this;
 			if (this.state.user_name === this.props.userName) {
 				return ( 
-					React.createElement(Button, {onClick: _this.handleDelete.bind(null, this.props.keyName), bsStyle: "danger", block: true}, "Delete")
+					React.createElement("div", null, 
+						React.createElement(TwitterButton, {className: "twitter-button"}, "Tweet"), 
+						React.createElement(Button, {onClick: _this.handleDelete.bind(null, this.props.keyName), bsStyle: "danger", block: true}, "Delete")
+					)
 				) 
 			} else {
 				return (React.createElement("div", null));
@@ -51282,6 +51309,533 @@
 
 /***/ },
 /* 518 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;;(function (root, factory) {
+	  if (typeof module !== "undefined" && module.exports) {
+	    module.exports = factory(__webpack_require__(1));
+	  } else if (true) {
+	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	  } else {
+	    root.ReactSocial = factory(root.React);
+	  }
+	})(this, function (React) {
+	  "use strict";
+
+	  var isBrowser = function () {
+	    return !(typeof document === "undefined" || typeof window === "undefined");
+	  };
+
+	  var assign = function(dest, src) {
+	    for (var key in src) {
+	      dest[key] = src[key];
+	    }
+
+	    return dest;
+	  };
+
+	  var spread = function (obj, omit) {
+	    var clone = assign({}, obj);
+
+	    omit.forEach(function (key) {
+	      delete clone[key];
+	    });
+
+	    return clone;
+	  };
+
+	  var jsonp = function (url, cb) {
+	    cb = cb || function () { };
+	    var called = false;
+	    var now = +new Date(),
+	      id = now + "_" + Math.floor(Math.random()*1000);
+
+	    var script = document.createElement("script"),
+	      callback = "jsonp_" + id,
+	      query = url.replace("@", callback);
+
+	    script.setAttribute("type", "text/javascript");
+	    script.setAttribute("src", query);
+	    document.body.appendChild(script);
+
+	    setTimeout(function () {
+	      if (!called) {
+	        called = true;
+	        cb(new Error("jsonp timeout"));
+	      }
+	    }, 10000);
+
+	    window[callback] = function () {
+	      var args = Array.prototype.slice.call(arguments, 0);
+	      args.unshift(null);
+	      if (!called) {
+	        called = true;
+	        cb.apply(this, args);
+	      }
+	    };
+	  };
+
+
+	  /* Caputre VKontake callbacks */
+	  var vkCallbacks = {};
+
+	  var hookVKCallback = function () {
+	    if (!isBrowser()) { return; }
+
+	    if (!window.VK) {
+	      window.VK = {};
+	    }
+
+	    if (!window.VK.Share) {
+	      window.VK.Share = {};
+	    }
+
+	    var oldCount = window.VK.Share.count;
+
+	    window.VK.Share.count = function (index, count) {
+	      if (typeof vkCallbacks[index] === "function") {
+	        return vkCallbacks[index](count);
+	      }
+
+	      if (typeof oldCount === "function") {
+	        oldCount(index, count);
+	      }
+	    };
+	  };
+
+	  var captureVKCallback = function (index, cb) {
+	    vkCallbacks[index] = cb;
+	  };
+
+	  hookVKCallback();
+
+	  var exports = {};
+
+	  var Count = {
+	    displayName: "Count"
+
+	    , propTypes: {
+	      element: React.PropTypes.string
+	      , url: React.PropTypes.string
+	    }
+
+	    , getDefaultProps: function () {
+	      var location = "";
+
+	      if (isBrowser()) {
+	        location = window.location.href;
+	      }
+
+	      return {
+	        url: location
+	        , element: "span"
+	        , onCount: function () { }
+	      };
+	    }
+
+	    , getInitialState: function () {
+	      return {
+	        count: 0
+	      };
+	    }
+
+	    , componentDidMount: function () {
+	      this.updateCount();
+	    }
+
+	    , componentWillReceiveProps: function (nextProps) {
+	      if (this.props.url !== nextProps.url) {
+	        this.setState({
+	          count: 0
+	        }, function () {
+	          this.updateCount();
+	        });
+	      }
+	    }
+
+	    , componentDidUpdate: function () {
+	      this.props.onCount(this.state.count);
+	    }
+
+	    , updateCount: function () {
+	      if (!isBrowser()) {
+	        return ;
+	      }
+
+	      if (typeof this.fetchCount === "function") {
+	        return this.fetchCount(function (count) {
+	          this.setState({ count: count });
+	        }.bind(this));
+	      }
+
+	      var url = this.constructUrl();
+
+	      jsonp(url, function (err, data) {
+	        if (err) {
+	          console.warn("react-social: jsonp timeout for url " + url);
+	          return this.setState({count: 0});
+	        }
+
+	        this.setState({
+	          count: this.extractCount(data)
+	        });
+	      }.bind(this));
+	    }
+
+	    , getCount: function () {
+	      return this.state.count;
+	    }
+
+	    , render: function () {
+	      return React.createElement(
+	        this.props.element
+	        , spread(this.props, ["element", "url", "onCount"])
+	        , this.state.count
+	      );
+	    }
+	  };
+
+	  var Button = {
+	    displayName: "Button"
+
+	    , propTypes: {
+	      element: React.PropTypes.oneOfType([
+	        React.PropTypes.string
+	      , React.PropTypes.func
+	      ])
+	      , url: React.PropTypes.string
+	      , media: React.PropTypes.string
+	      , message: React.PropTypes.string
+	      , onClick: React.PropTypes.func
+	      , target: React.PropTypes.string
+	      , _open: React.PropTypes.bool
+	    }
+
+	    , getDefaultProps: function () {
+	      var location = "";
+
+	      if (isBrowser()) {
+	        location = window.location.href;
+	      }
+
+	      return {
+	        element: "button"
+	        , url: location
+	        , media: ""
+	        , message: ""
+	        , onClick: function () { }
+	        , _open: true
+	      };
+	    }
+
+	    , click: function (e) {
+	      var url = this.constructUrl();
+	      var target = this.props.target;
+	      this.props.onClick(e, url, target);
+	      if (isBrowser() && this.props._open) {
+	        window.open(url, target);
+	      }
+	    }
+
+	    , render: function () {
+	      var other = spread(this.props, ["onClick", "element", "url", "_open", "message", "appId", "media"]);
+
+	      return React.createElement(
+	        this.props.element
+	        , assign({ "onClick": this.click }, other)
+	      );
+	    }
+	  };
+
+	  var DefaultBlankTarget = {
+	    getDefaultProps: function () {
+	      return {target: "_blank"};
+	    }
+	  };
+
+	  /* Counts */
+	  exports.FacebookCount = React.createClass({
+	    displayName: "FacebookCount"
+
+	    , mixins: [Count]
+
+	    , constructUrl: function () {
+	      var fql = encodeURIComponent("select like_count, share_count from link_stat where url = '" + this.props.url + "'")
+	        , url = "https://api.facebook.com/method/fql.query?format=json&callback=@&query=" + fql;
+
+	      return url;
+	    }
+
+	    , extractCount: function (data) {
+	      if (!data[0]) { return 0; }
+
+	      return data[0].like_count + data[0].share_count;
+	    }
+	  });
+
+	  exports.TwitterCount = React.createClass({
+	    displayName: "TwitterCount"
+
+	    , mixins: [Count]
+
+	    , constructUrl: function () {
+	      return "https://count.donreach.com/?callback=@&url=" + encodeURIComponent(this.props.url) + "&providers=all";
+	    }
+
+	    , extractCount: function (data) {
+	      return data.shares.twitter || 0;
+	    }
+	  });
+
+	  exports.GooglePlusCount = React.createClass({
+	    displayName: "GooglePlusCount"
+
+	    , mixins: [Count]
+
+	    , constructUrl: function () {
+	      return "https://count.donreach.com/?callback=@&url=" + encodeURIComponent(this.props.url) + "&providers=google";
+	    }
+
+	    , extractCount: function (data) {
+	      return data.shares.google || 0;
+	    }
+	  });
+
+	  exports.PinterestCount = React.createClass({
+	    displayName: "PinterestCount"
+
+	    , mixins: [Count]
+
+	    , constructUrl: function () {
+	      return "https://api.pinterest.com/v1/urls/count.json?callback=@&url="
+	             + encodeURIComponent(this.props.url);
+	    }
+
+	    , extractCount: function (data) {
+	      return data.count || 0;
+	    }
+	  });
+
+	  exports.LinkedInCount = React.createClass({
+	    displayName: "LinkedInCount"
+
+	    , mixins: [Count]
+
+	    , constructUrl: function () {
+	      return "https://www.linkedin.com/countserv/count/share?url=" + encodeURIComponent(this.props.url) + "&callback=@&format=jsonp";
+	    }
+
+	    , extractCount: function (data) {
+	      return data.count || 0;
+	    }
+	  });
+
+	  exports.RedditCount = React.createClass({
+	    displayName: "RedditCount"
+
+	    , mixins: [Count]
+
+	    , constructUrl: function () {
+	      return "https://www.reddit.com/api/info.json?jsonp=@&url=" + encodeURIComponent(this.props.url);
+	    }
+
+	    , extractCount: function (data) {
+	      var count = 0;
+	      var chs = data.data.children;
+
+	      for (var i = 0; i < chs.length; i++) {
+	        count += chs[i].data.score;
+	      }
+
+	      return count;
+	    }
+	  });
+
+	  exports.VKontakteCount = React.createClass({
+	    displayName: "VKontakteCount"
+
+	    , mixins: [Count]
+
+	    , fetchCount: function (cb) {
+	      var index = Math.floor(Math.random() * 10000)
+	      var url = "https://vkontakte.ru/share.php?act=count&index=" + index + "&url=" + encodeURIComponent(this.props.url);
+	      captureVKCallback(index, cb);
+	      jsonp(url);
+	    }
+	  });
+
+
+	  exports.TumblrCount = React.createClass({
+	    displayName: "TumblrCount"
+
+	    , mixins: [Count]
+
+	    , constructUrl: function () {
+	      return "http://api.tumblr.com/v2/share/stats?url="
+	             + encodeURIComponent(this.props.url) + "&callback=@";
+	    }
+
+	    , extractCount: function (data) {
+	      return data.response.note_count || 0;
+	    }
+	  });
+
+	  exports.PocketCount = React.createClass({
+	    displayName: "PocketCount"
+
+	    , mixins: [Count]
+
+	    , constructUrl: function () {
+	      return "https://count.donreach.com/?callback=@&url=" + encodeURIComponent(this.props.url) + "&providers=pocket";
+	    }
+
+	    , extractCount: function (data) {
+	      return data.shares.pocket || 0;
+	    }
+	  });
+
+	  /* Buttons */
+	  exports.FacebookButton = React.createClass({
+	    displayName: "FacebookButton"
+
+	    , mixins: [Button, DefaultBlankTarget]
+
+	    , propTypes: {
+	      appId: React.PropTypes.oneOfType([
+	        React.PropTypes.string,
+	        React.PropTypes.number
+	      ]).isRequired
+	    }
+
+	    , constructUrl: function () {
+	      return "https://www.facebook.com/dialog/feed?"
+	             + "app_id=" + encodeURIComponent(this.props.appId)
+	             + "&display=popup&caption=" + encodeURIComponent(this.props.message)
+	             + "&link=" + encodeURIComponent(this.props.url)
+	             + "&redirect_uri=" + encodeURIComponent("https://www.facebook.com/")
+	    }
+	  });
+
+	  exports.TwitterButton = React.createClass({
+	    displayName: "TwitterButton"
+
+	    , mixins: [Button, DefaultBlankTarget]
+
+	    , constructUrl: function () {
+	      var msg = this.props.message === "" ?
+	        this.props.url : this.props.message + " " + this.props.url;
+	      return "https://twitter.com/intent/tweet?text=" + encodeURIComponent(msg);
+	    }
+	  });
+
+	  exports.EmailButton = React.createClass({
+	    displayName: "EmailButton"
+
+	    , mixins: [Button]
+
+	    , getDefaultProps: function () {
+	      return {target: "_self"};
+	    }
+
+	    , constructUrl: function () {
+	      return "mailto:?subject=" + encodeURIComponent(this.props.message) + "&body=" + encodeURIComponent(this.props.url);
+	    }
+	  });
+
+	  exports.PinterestButton = React.createClass({
+	    displayName: "PinterestButton"
+
+	    , mixins: [Button, DefaultBlankTarget]
+
+	    , propTypes: {
+	      media: React.PropTypes.string.isRequired
+	    }
+
+	    , constructUrl: function () {
+	      var url = "https://pinterest.com/pin/create/button/?url="
+	                + encodeURIComponent(this.props.url) + "&media="
+	                + encodeURIComponent(this.props.media) + "&description="
+	                + encodeURIComponent(this.props.message);
+	      return url;
+	    }
+	  });
+
+	  exports.VKontakteButton = React.createClass({
+	    displayName: "VKontakteButton"
+
+	    , mixins: [Button, DefaultBlankTarget]
+
+	    , constructUrl: function () {
+	        return "http://vk.com/share.php?url=" + encodeURIComponent(this.props.url);
+	    }
+	  });
+
+	  exports.GooglePlusButton = React.createClass({
+	    displayName: "GooglePlusButton"
+
+	    , mixins: [Button, DefaultBlankTarget]
+
+	    , constructUrl: function () {
+	        return "https://plus.google.com/share?url=" + encodeURIComponent(this.props.url);
+	    }
+	  });
+
+	  exports.RedditButton = React.createClass({
+	    displayName: "RedditButton"
+
+	    , mixins: [Button, DefaultBlankTarget]
+
+	    , constructUrl: function () {
+	        return "https://www.reddit.com/submit?url=" + encodeURIComponent(this.props.url);
+	    }
+	  });
+
+	  exports.LinkedInButton = React.createClass({
+	    displayName: "LinkedInButton"
+
+	    , mixins: [Button, DefaultBlankTarget]
+
+	    , constructUrl: function () {
+	      return "https://www.linkedin.com/shareArticle?url=" + encodeURIComponent(this.props.url);
+	    }
+	  });
+
+	  exports.XingButton = React.createClass({
+	    displayName: "XingButton"
+
+	    , mixins: [Button, DefaultBlankTarget]
+
+	    , constructUrl: function () {
+	      return "https://www.xing.com/app/user?op=share;url=" + encodeURIComponent(this.props.url) + ";title=" + encodeURIComponent(this.props.message);
+	    }
+	  });
+
+	  exports.TumblrButton = React.createClass({
+	    displayName: "TumblrButton"
+
+	    , mixins: [Button, DefaultBlankTarget]
+
+	    , constructUrl: function () {
+	      return "https://www.tumblr.com/widgets/share/tool?posttype=link&title=" + encodeURIComponent(this.props.message) + "&content=" + encodeURIComponent(this.props.url) + "&canonicalUrl=" + encodeURIComponent(this.props.url) + "&shareSource=tumblr_share_button";
+	    }
+	  });
+
+	  exports.PocketButton = React.createClass({
+	    displayName: "PocketButton"
+
+	    , mixins: [Button, DefaultBlankTarget]
+
+	    , constructUrl: function () {
+	      return "https://getpocket.com/save?url=" + encodeURIComponent(this.props.url) + "&title=" + encodeURIComponent(this.props.message);
+	    }
+	  });
+
+	  return exports;
+	});
+
+
+/***/ },
+/* 519 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
@@ -51321,14 +51875,12 @@
 	  	var Grid = ReactBootstrap.Grid;
 		    return (
 		    	React.createElement("div", null, 
+			    	React.createElement("h2", null, "Vote on a Poll or Create Your Own"), 
 			  		React.createElement(Grid, null, 
 			  			React.createElement(Row, null, 
-								React.createElement(Col, {xs: 12, md: 6, mdOffset: 3}, 
-									React.createElement(AllPollsSelector, {
-									 pollData: this.state.pollData, 
-									 userName: this.props.params.userName, 
-									 loggedIn: true})
-								)
+								React.createElement(AllPollsSelector, {
+								 pollData: this.state.pollData, 
+								 userName: this.props.params.userName})
 							)
 			  		)
 		  		)
@@ -51339,11 +51891,11 @@
 	module.exports = UserAllPolls;
 
 /***/ },
-/* 519 */
+/* 520 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
-	var MyPollsSelector = __webpack_require__(520);
+	var MyPollsSelector = __webpack_require__(521);
 	var ReactBootstrap = __webpack_require__(239);
 	var PollActions = __webpack_require__(490);
 	var AppStore = __webpack_require__(497);
@@ -51379,14 +51931,12 @@
 	  	var Grid = ReactBootstrap.Grid;
 		    return (
 		    	React.createElement("div", null, 
+		    		React.createElement("h2", null, "My Polls"), 
 			  		React.createElement(Grid, null, 
 			  			React.createElement(Row, null, 
-								React.createElement(Col, {xs: 12, md: 6, mdOffset: 3}, 
-									React.createElement(MyPollsSelector, {
-									 pollData: this.state.pollData, 
-									 userName: this.props.params.userName, 
-									 loggedIn: true})
-								)
+								React.createElement(MyPollsSelector, {
+								 pollData: this.state.pollData, 
+								 userName: this.props.params.userName})
 							)
 			  		)
 		  		)
@@ -51397,7 +51947,7 @@
 	module.exports = UserMyPolls;
 
 /***/ },
-/* 520 */
+/* 521 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
@@ -51410,7 +51960,6 @@
 			    return (
 	  				React.createElement(MyPollsModal, {
 		  				item: item, 
-		  				loggedIn: true, 
 		  				i: i, 
 		  				key: i, 
 		  				pollData: this.props.pollData, 
@@ -51426,7 +51975,7 @@
 	module.exports = MyPollsSelector;
 
 /***/ },
-/* 521 */
+/* 522 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
@@ -51441,6 +51990,7 @@
 	var PollActions = __webpack_require__(490);
 	var PollPieChart = __webpack_require__(506);
 	var DeleteButton = __webpack_require__(517);
+	var NewOption = __webpack_require__(523);
 
 	function getPollState() {
 	  return {
@@ -51459,7 +52009,6 @@
 
 		componentWillMount: function() {
 			PollActions.getPoll(this.props.params.key);
-			// PollActions.getPoll(this.state.userName);
 			this.setState({showModal: true})
 		},
 
@@ -51488,13 +52037,14 @@
 		  var firebaseRef = firebase.database().ref('pollData');
 		  var pollIndex = e.target.getAttribute('data-index');
 		  var pollKey = this.props.params.key;
-		  var length = this.state.poll[0].length;
+		  var length = this.state.poll[0][0].length;
 		  var dataArr = this.state.poll[0];
-		  var updatedPoll;
-		  for (var i = 0; i < length - 1; i++) {
+		  var localUser = localStorage.getItem('user_name');
+		  for (var i = 0; i < length; i++) {
 		    if (dataArr[0][i].label === e.target.value) {
 		      this.state.poll[0][0][i].value += 1;
 		      firebaseRef.child(pollKey).update({0: this.state.poll[0][0]});
+		      // firebaseRef.child(pollKey).push({voter: localUser})
 		      AppStore.emitChange();
 		    }
 		  }
@@ -51508,7 +52058,6 @@
 
 	  render: function() {
 	  	var _this = this;
-	  	console.log(this.props.params.userName);
 	  	if (!this.state.poll) {
 				return (React.createElement("div", null))
 			} else {
@@ -51531,10 +52080,11 @@
 	    	              React.createElement("option", {disabled: true, value: "default"}), 
 	    	                this.state.poll[0][0].map(function(subitem, i) {
 	    	                  return React.createElement("option", {key: i, value: subitem.label}, subitem.label)}, this)
-	    	            )
+	    	            ), 
+	    	            React.createElement(NewOption, {keyName: this.state.poll[0]['.key']})
 	    	          ), 
 	    	          React.createElement(PollPieChart, {data: this.state.poll[0][0]}), 
-	    	          	React.createElement(DeleteButton, {userName: this.props.params.userName, keyName: this.state.poll[0]['.key']})	
+	  	          	React.createElement(DeleteButton, {userName: this.props.params.userName, keyName: this.state.poll[0]['.key']})	
 	    	        )
 	    	      )
 		    	  ), 
@@ -51551,7 +52101,118 @@
 	module.exports = MyPollView;
 
 /***/ },
-/* 522 */
+/* 523 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(1);
+	var ReactBootstrap = __webpack_require__(239);
+	var FormControl = ReactBootstrap.FormControl;
+	var FieldGroup = ReactBootstrap.FieldGroup;
+	var Button = ReactBootstrap.Button;
+	var Form = ReactBootstrap.Form
+	var PollActions = __webpack_require__(490);
+	var hashHistory = __webpack_require__(175).hashHistory;
+
+	var NewOption = React.createClass({displayName: "NewOption",
+
+		getInitialState: function() {
+			return {user_name: localStorage.getItem('user_name'), text: ''}
+		},
+
+		close: function() {
+		  this.setState({ showModal: false });
+		  hashHistory.push(`/users/allpolls/${this.props.userName}`)
+		},
+
+		handleDelete: function(key) {
+		  var userName = this.props.userName;
+		  PollActions.delPoll(key, userName);
+		  hashHistory.push(`/users/allpolls/${this.props.userName}`)
+		},
+
+		handleTextChange: function(e) {
+			this.setState({text: e.target.value});
+		},
+
+		// handleSubmit: function(e) {
+		// 	e.preventDefault();
+		// 	PollActions.newOption(this.props.keyName, this.state.text);
+		// },
+
+		// handleSubmit: function(e) {
+		// 	e.preventDefault();
+		// 	var title = this.state.title;
+		// 	var parseText = this.state.text.split(',');
+		// 	var choices = parseText.map(function(item) {return [item];});
+		// 	var colors = choices.map(function() {
+		// 		return '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+		// 		  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+		// 	})
+		// 	var initialData = choices.map(function(item) {return 0;});
+		// 	var pieData = parseText.map(function(item) {
+		// 		var obj = {}
+		// 		obj.label = item;
+		// 		obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+		// 		  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+		// 		obj.value = 0;
+		// 		return obj;
+		// 	})
+		// 	var nickname = this.state.profile.nickname;
+		// 	var nextText = '';
+		// 	var nextTitle = '';
+		// 	var nextChart = this.state.pollData.concat([pieData]);
+
+		// 	PollActions.addPoll([pieData, nickname, title]);
+
+		// 	this.setState({text: nextText, title: nextTitle});
+
+		// 	hashHistory.push(`/users/${this.state.profile.nickname}`);
+			
+		// },
+
+		handleSubmit: function(e) {
+			e.preventDefault();
+			var newOption = this.state.text;
+			var pollKey = this.props.keyName;
+			PollActions.newOption(newOption, pollKey);
+			// var obj = {}
+			// obj.label = this.state.text;
+			// obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+			// 	  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+			// obj.value = 1;
+		 //  var firebaseRef = firebase.database().ref('pollData').child(this.props.keyName);
+		 //  firebaseRef.once('value', function(snap) {
+		 //  	var arr = snap.val();
+		 //  	console.log(arr)
+		 //  	arr[0].push(obj)
+		 //  });
+		},
+
+		render: function() {
+
+			if (this.state.user_name) {
+				return ( 
+					React.createElement("div", null, 
+						React.createElement(Form, {className: "newOptionForm", onSubmit: this.handleSubmit}, 
+							React.createElement(FormControl, {
+							 type: "text", 
+							 placeholder: "Add A New Option", 
+							 value: this.state.text, 
+							 onChange: this.handleTextChange}), 
+							React.createElement(Button, {type: "submit"}, "Add New")
+						)
+					)
+				) 
+			} else {
+				return (React.createElement("div", null, "test"));
+			}
+		}
+	})
+
+	module.exports = NewOption;
+
+/***/ },
+/* 524 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
@@ -51559,6 +52220,7 @@
 	var PollActions = __webpack_require__(490);
 	var AppStore = __webpack_require__(497);
 	var hashHistory = __webpack_require__(175).hashHistory;
+
 
 	var AddPoll = React.createClass({displayName: "AddPoll",
 
@@ -51617,7 +52279,7 @@
 		handleSubmit: function(e) {
 			e.preventDefault();
 			var title = this.state.title;
-			var parseText = this.state.text.split(' ').join('').split(',');
+			var parseText = this.state.text.split(',');
 			var choices = parseText.map(function(item) {return [item];});
 			var colors = choices.map(function() {
 				return '#'+'0123456789abcdef'.split('').map(function(v,i,a){
@@ -51694,16 +52356,16 @@
 	module.exports = AddPoll;
 
 /***/ },
-/* 523 */
+/* 525 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(524);
+	var content = __webpack_require__(526);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(526)(content, {});
+	var update = __webpack_require__(528)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -51720,21 +52382,21 @@
 	}
 
 /***/ },
-/* 524 */
+/* 526 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(525)();
+	exports = module.exports = __webpack_require__(527)();
 	// imports
 
 
 	// module
-	exports.push([module.id, "ul.pie-legend {\n  text-align: center;\n  list-style: none;\n  padding: 30px 0; }\n\nheader {\n  margin-bottom: 40px; }\n\n.active {\n  color: #000; }\n\na:hover, a:active, a:visited, a:focus {\n  text-decoration: none; }\n\n.pie-legend li {\n  display: inline-block; }\n\n.pie-legend span {\n  padding: 10px; }\n\nspan.pie-legend-icon {\n  margin: 5px; }\n\nnav ul li {\n  display: inline-block;\n  margin: 10px; }\n\n#new-todo {\n  padding: 20px; }\n\ndiv.modal-header {\n  text-align: center; }\n\ndiv.modal-content {\n  padding-left: 30px;\n  padding-right: 30px; }\n\n.chart {\n  display: flex;\n  justify-content: center; }\n\n.pie-legend {\n  display: flex;\n  flex-direction: column; }\n  .pie-legend li {\n    margin-top: 20px;\n    text-align: left; }\n\ndiv.chart {\n  margin-bottom: 20px; }\n\ndiv.modal-footer {\n  padding-left: 0;\n  padding-right: 0; }\n\n@media (max-width: 500px) {\n  .chart {\n    display: flex;\n    flex-direction: column-reverse; }\n  .legend {\n    margin: 0 auto; } }\n", ""]);
+	exports.push([module.id, "h2 {\n  text-align: center;\n  margin-bottom: 40px; }\n\nul.pie-legend {\n  text-align: center;\n  list-style: none;\n  padding: 30px 0; }\n\nheader {\n  margin-bottom: 40px; }\n\n.active {\n  color: #000; }\n\na:hover, a:active, a:visited, a:focus {\n  text-decoration: none; }\n\n.pie-legend li {\n  display: inline-block; }\n\n.pie-legend span {\n  padding: 10px; }\n\nspan.pie-legend-icon {\n  margin: 5px; }\n\nnav ul li {\n  display: inline-block;\n  margin: 10px; }\n\n#new-todo {\n  padding: 20px; }\n\ndiv.modal-header {\n  text-align: center; }\n\ndiv.modal-content {\n  padding-left: 30px;\n  padding-right: 30px; }\n\n.chart {\n  display: flex;\n  justify-content: center; }\n\n.pie-legend {\n  display: flex;\n  flex-direction: column; }\n  .pie-legend li {\n    margin-top: 20px;\n    text-align: left; }\n\ndiv.chart {\n  margin-bottom: 20px; }\n\ndiv.modal-footer {\n  padding-left: 0;\n  padding-right: 0; }\n\n@media (max-width: 500px) {\n  .chart {\n    display: flex;\n    flex-direction: column-reverse; }\n  .legend {\n    margin: 0 auto; } }\n\n.twitter-button {\n  display: inline-block;\n  padding: 6px 12px 6px 30px;\n  margin: 10px 0;\n  border: #ccc solid 1px;\n  border-radius: 3px;\n  background: #f8f8f8 url(\"data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNy4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSIwIDAgNzIgNzIiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDcyIDcyIiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxyZWN0IHg9IjAiIGZpbGw9Im5vbmUiIHdpZHRoPSI3MiIgaGVpZ2h0PSI3MiIvPg0KPHBhdGggZmlsbD0iIzU1YWNlZSIgZD0iTTY4LjgxMiwxNS4xNDFjLTIuMzQ4LDEuMDM5LTQuODY5LDEuNzQzLTcuNTE5LDIuMDZjMi43MDMtMS42Miw0Ljc3OC00LjE4Nyw1Ljc1Ni03LjI0NGMtMi41MjksMS41LTUuMzMsMi41OTItOC4zMTMsMy4xNzYNCglDNTYuMzQ5LDEwLjU5MSw1Mi45NDgsOSw0OS4xODIsOWMtNy4yMjksMC0xMy4wOTIsNS44NjEtMTMuMDkyLDEzLjA5M2MwLDEuMDI2LDAuMTE4LDIuMDIxLDAuMzM4LDIuOTgxDQoJYy0xMC44ODUtMC41NDgtMjAuNTI4LTUuNzU3LTI2Ljk4Ny0xMy42NzljLTEuMTI2LDEuOTM2LTEuNzcxLDQuMTg0LTEuNzcxLDYuNTgxYzAsNC41NDIsMi4zMTIsOC41NTEsNS44MjQsMTAuODk4DQoJYy0yLjE0Ni0wLjA2OS00LjE2NS0wLjY1Ny01LjkzLTEuNjM4Yy0wLjAwMiwwLjA1NS0wLjAwMiwwLjExLTAuMDAyLDAuMTYyYzAsNi4zNDUsNC41MTMsMTEuNjM4LDEwLjUwNCwxMi44NA0KCWMtMS4xMDEsMC4yOTgtMi4yNTYsMC40NTctMy40NDksMC40NTdjLTAuODQ2LDAtMS42NjctMC4wNzgtMi40NjUtMC4yMzFjMS42NjcsNS4yLDYuNDk5LDguOTg2LDEyLjIzLDkuMDkNCgljLTQuNDgyLDMuNTEyLTEwLjEyOSw1LjYwNi0xNi4yNiw1LjYwNmMtMS4wNTUsMC0yLjA5Ni0wLjA2MS0zLjEyMi0wLjE4NGM1Ljc5NCwzLjcxNywxMi42NzYsNS44ODIsMjAuMDY3LDUuODgyDQoJYzI0LjA4MywwLDM3LjI1MS0xOS45NDksMzcuMjUxLTM3LjI0OWMwLTAuNTY2LTAuMDE0LTEuMTM0LTAuMDM5LTEuNjk0QzY0LjgzOCwyMC4wNjgsNjcuMDU4LDE3Ljc2NSw2OC44MTIsMTUuMTQxeiIvPg0KPC9zdmc+DQo=\") 8px 8px no-repeat;\n  background-size: 1em 1em;\n  font: normal 12px/18px Helvetica, Arial, sans-serif;\n  color: #333;\n  white-space: nowrap; }\n\n.poll-button {\n  margin-bottom: 20px;\n  padding: 30px 60px; }\n", ""]);
 
 	// exports
 
 
 /***/ },
-/* 525 */
+/* 527 */
 /***/ function(module, exports) {
 
 	/*
@@ -51790,7 +52452,7 @@
 
 
 /***/ },
-/* 526 */
+/* 528 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*

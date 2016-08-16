@@ -9,5 +9,6 @@ module.exports = keyMirror({
   GET_POLL: null,
   GET_ALL_POLLS: null,
   GET_USER_POLLS: null,
-  DEL_POLL: null
+  DEL_POLL: null,
+  NEW_OPTION: null
 });

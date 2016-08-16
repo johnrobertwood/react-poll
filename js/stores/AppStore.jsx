@@ -33,10 +33,12 @@ function resetModal() {
 }
 
 function addPoll(poll) {
-  firebase.database().ref('pollData').push(poll);
+  firebase.database().ref('pollData').push(poll, function() {
+    AppStore.emitChange();
+  });
 }
 
-function getPolls(key) {
+function getPoll(key) {
   polls = [];
   firebase.database().ref('pollData').once('value', function(snapshot) {
     var obj = snapshot.val();
@@ -108,6 +110,27 @@ function delPoll(key, userName) {
   resetModal();
 }
 
+function newOption(key, option) {
+  var firebaseRef = firebase.database().ref('pollData');
+
+  var obj = {}
+  obj.label = option;
+  obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+      return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+  obj.value = 0;
+  var firebaseRef = firebase.database().ref('pollData').child(key);
+  firebaseRef.once('value', function(snap) {
+    var arr = snap.val();
+    arr[0].push(obj);
+    poll[0][0].push(obj)
+    firebaseRef.set(arr, function() {
+      legend = 'newChart';
+      AppStore.emitChange();
+    });
+  });
+
+}
+
 var AppStore = assign({}, EventEmitter.prototype, {
 
   getPoll: function() {
@@ -163,11 +186,10 @@ AppDispatcher.register(function(action){
 
   if (action.actionType === "ADD_POLL") {
     addPoll(action.poll);
-    AppStore.emitChange();
   }
 
   if (action.actionType === "GET_POLL") {
-    getPolls(action.key);
+    getPoll(action.key);
   }
 
   if (action.actionType === "GET_USER_POLLS") {
@@ -180,7 +202,10 @@ AppDispatcher.register(function(action){
 
   if (action.actionType === "DEL_POLL") {
     delPoll(action.key, action.userName);
-    AppStore.emitChange();
+  }
+
+  if (action.actionType === "NEW_OPTION") {
+    newOption(action.key, action.option);
   }
   
   return true;

@@ -35,14 +35,12 @@ var UserAllPolls = React.createClass({
   	var Grid = ReactBootstrap.Grid;
 	    return (
 	    	<div>
+		    	<h2>Vote on a Poll or Create Your Own</h2>
 		  		<Grid>
 		  			<Row>
-							<Col xs={12} md={6} mdOffset={3}>
-								<AllPollsSelector 
-								 pollData={this.state.pollData} 
-								 userName={this.props.params.userName} 
-								 loggedIn={true} />
-							</Col>
+							<AllPollsSelector 
+							 pollData={this.state.pollData} 
+							 userName={this.props.params.userName} /> 
 						</Row>
 		  		</Grid>
 	  		</div>

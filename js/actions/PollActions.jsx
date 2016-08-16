@@ -55,6 +55,14 @@ var PollActions = {
       actionType: PollConstants.CURRENT_USER,
       user: user
     });
+  },
+
+  newOption: function(key, option) {
+    AppDispatcher.dispatch({
+      actionType: PollConstants.NEW_OPTION,
+      key: key,
+      option: option
+    });
   }
 
 };

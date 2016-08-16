@@ -74,7 +74,7 @@ var AddPoll = React.createClass({
 			obj.label = item;
 			obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
 			  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
-			obj.value = 0;
+			obj.value = 1;
 			return obj;
 		})
 		var nickname = this.state.profile.nickname;

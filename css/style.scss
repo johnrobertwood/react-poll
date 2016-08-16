@@ -1,3 +1,8 @@
+h2 {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
 ul.pie-legend {
   text-align: center;
   list-style: none;
@@ -93,6 +98,11 @@ div {
   font: normal 12px/18px Helvetica, Arial, sans-serif;
   color: #333;
   white-space: nowrap;
+}
+
+.poll-button {
+  margin-bottom: 20px;
+  padding: 30px 60px;
 }
 
 

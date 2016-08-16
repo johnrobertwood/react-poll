@@ -10,6 +10,7 @@ var AppStore = require("../stores/AppStore.jsx");
 var PollActions = require("../actions/PollActions.jsx");
 var PollPieChart = require('./poll-pie-chart.jsx');
 var DeleteButton = require('./delete-button.jsx');
+var NewOption = require('./new-option.jsx');
 
 function getPollState() {
   return {
@@ -22,7 +23,8 @@ var MyPollView = React.createClass({
 
 	getInitialState: function() {
 		return {
-			poll: null
+			poll: null,
+			status: true
 		}
 	},
 
@@ -56,16 +58,14 @@ var MyPollView = React.createClass({
 	  var firebaseRef = firebase.database().ref('pollData');
 	  var pollIndex = e.target.getAttribute('data-index');
 	  var pollKey = this.props.params.key;
-	  var length = this.state.poll[0].length;
+	  var length = this.state.poll[0][0].length;
 	  var dataArr = this.state.poll[0];
 	  var localUser = localStorage.getItem('user_name');
-	  for (var i = 0; i < length - 1; i++) {
+	  for (var i = 0; i < length; i++) {
 	    if (dataArr[0][i].label === e.target.value) {
 	      this.state.poll[0][0][i].value += 1;
 	      firebaseRef.child(pollKey).update({0: this.state.poll[0][0]});
-	      firebaseRef.child(pollKey).push({voter: localUser})
-
-
+	      // firebaseRef.child(pollKey).push({voter: localUser})
 	      AppStore.emitChange();
 	    }
 	  }
@@ -97,14 +97,15 @@ var MyPollView = React.createClass({
     	              componentClass="select" 
     	              data-key={this.state.poll['.key']} 
     	              onChange={this.handleChange} 
-    	              defaultValue="default">
+    	              defaultValue="default" disabled={this.state.status}>
     	              <option disabled value="default"></option>
     	                {this.state.poll[0][0].map(function(subitem, i) {
     	                  return <option key={i} value={subitem.label}>{subitem.label}</option>}, this)}
     	            </FormControl>
+    	            <NewOption keyName={this.state.poll[0]['.key']} />
     	          </FormGroup>
     	          <PollPieChart data={this.state.poll[0][0]} />
-    	          	<DeleteButton userName={this.props.params.userName} keyName={this.state.poll[0]['.key']} />	
+  	          	<DeleteButton userName={this.props.params.userName} keyName={this.state.poll[0]['.key']} />	
     	        </div>
     	      </div>
 	    	  </Modal.Body>

@@ -1,14 +1,25 @@
 var React = require('react');
-var PieChart = require("react-chartjs").Pie;
+var PieChart = require('react-chartjs').Pie;
+var AppStore = require('../stores/AppStore.jsx');
 
 var PollPieChart = React.createClass({
 
+  getInitialState: function() {
+    // return {legend: ""}
+    return {legend: this.refs.chart}
+  },
+
 	componentDidMount: function() {
 		var legend = this.refs.chart.getChart().generateLegend();
-		this.setState({legend: legend});
+    this.setState({legend: legend});
+    AppStore.addChangeListener(this._onChange);
 	},
 
-  componentWillReceiveProps: function() {
+  componentWillUnmount: function() {
+    AppStore.removeChangeListener(this._onChange);
+  },
+
+  _onChange: function() {
     var legend = this.refs.chart.getChart().generateLegend();
     this.setState({legend: legend});
   },
@@ -38,16 +49,16 @@ var PollPieChart = React.createClass({
   	    animationEasing : "easeOutBounce",
 
   	    //Boolean - Whether we animate the rotation of the Doughnut
-  	    animateRotate : true,
+  	    animateRotate : false,
 
   	    //Boolean - Whether we animate scaling the Doughnut from the centre
-  	    animateScale : true
+  	    animateScale : false
   	}
-		 	
+    console.log(this.state.legend);
     return (
     	<div className="chart">
 	    	<div className="legend" dangerouslySetInnerHTML={{ __html: legend }} />
-        <PieChart data={this.props.data} options={chartOptions} ref="chart"/>
+        <PieChart data={this.props.data} options={chartOptions} ref='chart' />
 	    </div>
     )
   }

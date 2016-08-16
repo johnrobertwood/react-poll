@@ -8,7 +8,6 @@ var MyPollsSelector = React.createClass({
 		    return (
   				<MyPollsModal 
 	  				item={item} 
-	  				loggedIn={true} 
 	  				i={i} 
 	  				key={i} 
 	  				pollData={this.props.pollData} 
