@@ -22,7 +22,8 @@ var NewOption = React.createClass({
 		e.preventDefault();
 		var newOption = this.state.text;
 		var pollKey = this.props.keyName;
-		PollActions.newOption(pollKey, newOption);
+		var user = this.state.user_name;
+		PollActions.newOption(pollKey, newOption, user);
 		this.setState({text: ''});
 	},
 
@@ -35,8 +36,10 @@ var NewOption = React.createClass({
 						 type="text" 
 						 placeholder="Write in your own selection" 
 						 value={this.state.text}
-						 onChange={this.handleTextChange} />
-						<Button type="submit">Submit Write In</Button>
+						 onChange={this.handleTextChange} 
+						 disabled={this.props.alreadyVoted} 
+						 required />
+						<Button type="submit" disabled={this.props.alreadyVoted}>Submit Write In</Button>
 					</Form>
 				</div>
 			) 

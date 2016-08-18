@@ -32,6 +32,7 @@ var AddPoll = React.createClass({
   	  this.lock.getProfile(idToken, function (err, profile) {
   	    if (err) {
   	      console.log("Error loading the Profile", err);
+  	      this.handleLogout();
   	      return;
   	    }
   	    this.setState({profile: profile});
@@ -60,10 +61,15 @@ var AddPoll = React.createClass({
 		var title = this.state.title;
 		var text = this.state.text;
 		var user = this.state.profile.nickname;
-
 		PollActions.addPoll(title, text, user)
-
 		hashHistory.push(`/users/${this.state.profile.nickname}`);
+	},
+
+	handleLogout: function() {
+		localStorage.removeItem('id_token');
+    localStorage.removeItem('user_name');
+		hashHistory.push('/');
+		PollActions.logOut();
 	},
 
   render: function() {
@@ -89,7 +95,8 @@ var AddPoll = React.createClass({
 				  				 type="text" 
 				  				 onChange={this.handleInputTitle} 
 				  				 value={this.state.title} 
-				  				 placeholder="Poll Title" 
+				  				 placeholder="Poll Title"
+				  				 maxLength="60"
 				  				 required />
 			  				</FormGroup>
 								<FormGroup controlId="formControlsTextarea">
@@ -99,7 +106,8 @@ var AddPoll = React.createClass({
 				  				 rows="4" 
 				  				 value={this.state.text} 
 				  				 onChange={this.handleInputOptions} 
-				  				 placeholder="Options" 
+				  				 placeholder="Options"
+				  				 maxLength="80" 
 				  				 required/>
 								</FormGroup>
 			  				<Button type="submit" bsStyle="primary" block>Add Poll</Button>

@@ -18,11 +18,11 @@ var Header = React.createClass({
 
   componentDidMount: function() {
     var idToken = localStorage.getItem('id_token');
-
     if (idToken) {
       this.lock.getProfile(idToken, function (err, profile) {
         if (err) {
           console.log("Error loading the Profile", err);
+          this.handleLogout();
           return;
         }
         this.setState({profile: profile});

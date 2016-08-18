@@ -8,11 +8,11 @@ var AllPollsModal = React.createClass({
 
   render: function() {
     return (
-        <Col xs={12} md={6}>
-          <Link to={`/users/allpolls/${this.props.userName}/${this.props.item['.key']}`}>
-          <Button bsStyle="primary" bsSize="large" className="poll-button" block>
-            {this.props.item[2]}
-          </Button>
+        <Col xs={12} md={8} mdOffset={2}>
+          <Link to={`/users/allpolls/${this.props.userName}/${this.props.poll['.key']}`}>
+            <Button bsStyle="primary" bsSize="large" className="poll-button" block>
+              {this.props.poll.title}
+            </Button>
           </Link>
         </Col>
     );

@@ -5,15 +5,13 @@ var AllPollsModal = require('./all-polls-modal.jsx');
 var AllPollsSelector = React.createClass({
 
 	render: function() {
-	  var createItem = function(item, i) {
-
+	  var createItem = function(poll, i) {
 	  		return (
 	  			<AllPollsModal
-						item={item}
+						poll={poll}
 						i={i}
 						key={i}
-						pollData={this.props.pollData} 
-						userName={item[1]} />
+						userName={poll.user} />
 				);
 	  };
 	  return 	<div>

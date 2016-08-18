@@ -33,18 +33,28 @@ var UserMyPolls = React.createClass({
   	var Row = ReactBootstrap.Row;
   	var Col = ReactBootstrap.Col;
   	var Grid = ReactBootstrap.Grid;
-	    return (
-	    	<div>
-	    		<h2>My Polls</h2>
-		  		<Grid>
-		  			<Row>
-							<MyPollsSelector 
-							 pollData={this.state.pollData} 
-							 userName={this.props.params.userName} />
-						</Row>
-		  		</Grid>
-	  		</div>
-	    );	
+  	  if (this.state.pollData[0] === undefined) {
+  	  	return (
+	  	  	<div>
+	  	  	  <h2>MyPolls</h2>
+	  	  	  <h2>No polls created yet</h2>
+		  	  </div>
+	  		)
+  	  } else {
+		    return (
+		    	<div>
+		    		<h2>My Polls</h2>
+			  		<Grid>
+			  			<Row>
+								<MyPollsSelector 
+								 pollData={this.state.pollData} 
+								 userName={this.props.params.userName} />
+							</Row>
+			  		</Grid>
+		  		</div>
+		    );	
+
+  	  }
   } 
 });
 

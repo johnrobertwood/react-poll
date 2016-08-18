@@ -45867,10 +45867,11 @@
 	    });
 	  },
 
-	  getPoll: function(key) {
+	  getPoll: function(key, user) {
 	    AppDispatcher.dispatch({
 	      actionType: PollConstants.GET_POLL,
-	      key: key
+	      key: key,
+	      user: user
 	    });
 	  },
 
@@ -45902,11 +45903,12 @@
 	    });
 	  },
 
-	  newOption: function(key, option) {
+	  newOption: function(key, option, user) {
 	    AppDispatcher.dispatch({
 	      actionType: PollConstants.NEW_OPTION,
 	      key: key,
-	      option: option
+	      option: option,
+	      user: user
 	    });
 	  },
 
@@ -46341,6 +46343,8 @@
 
 	var user = '';
 
+	var alreadyVoted = false;
+
 	var firebaseRef = firebase.database().ref('pollData');
 
 	function logIn() {
@@ -46376,69 +46380,72 @@
 	    return obj;
 	  })
 
-	  var poll = [pieData, user, title];
+	  var poll = {data: pieData, user: user, title: title};
 
 	  firebaseRef.push(poll, function() {
 	    AppStore.emitChange();
 	  });
 	}
 
-	function getPoll(key) {
+	function getPoll(key, user) {
 	  polls = [];
+	  alreadyVoted = false;
 	  firebaseRef.once('value', function(snapshot) {
 	    var obj = snapshot.val();
+
 	    for (var prop in obj) {
-	      item = [];
-	      item.push(obj[prop][0])
-	      item[1] = obj[prop][1] 
-	      item[2] = obj[prop][2]
-	      item[".key"] = prop;
-	      polls.push(item);
+	      obj[prop][".key"] = prop;
+	      polls = polls.concat(obj[prop])
 	    }
 
 	    poll = polls.filter(function(poll) {
 	      return poll[".key"] === key;
 	    })
+
+	    if (poll[0].voters) {
+	      poll[0].voters.forEach(function(voter) {
+	        if (user === voter) {
+	          alreadyVoted = true;
+	        }
+	      });
+	    }
+
 	    AppStore.emitChange();
+	    return poll;
 	  })
-	  return poll;
 	}
 
 	function getAllPolls() {
 	  polls = [];
+
 	  firebaseRef.once('value', function(snapshot) {
 	    var obj = snapshot.val();
+
 	    for (var prop in obj) {
-	      item = [];
-	      item.push(obj[prop][0])
-	      item[1] = obj[prop][1] 
-	      item[2] = obj[prop][2]
-	      item[".key"] = prop;
-	      polls.push(item);
+	      obj[prop][".key"] = prop;
+	      polls = polls.concat(obj[prop])
 	    }
 
-	    AppStore.emitChange()
-	  });
-	  return polls;
+	    AppStore.emitChange();
+	    return polls;
+	  })
 	}
 
 	function getUserPolls(user) {
 	  userPolls = [];
+
 	  firebaseRef.once('value', function(snapshot) {
 	    var obj = snapshot.val();
 
 	    for (var prop in obj) {
-	      item = [];
-	      item.push(obj[prop][0])
-	      item[1] = obj[prop][1] 
-	      item[2] = obj[prop][2]
-	      item[".key"] = prop;
-	      userPolls.push(item);
+	      obj[prop][".key"] = prop;
+	      userPolls = userPolls.concat(obj[prop])
 	    }
 
 	    userPolls = userPolls.filter(function(poll) {
-	      return poll[1] === user;
+	      return poll.user === user;
 	    })
+
 	    AppStore.emitChange();
 	    return userPolls;
 	  });
@@ -46454,28 +46461,50 @@
 	  resetModal();
 	}
 
-	function newOption(key, option) {
-	  var obj = {};
+	function newOption(key, option, user) {
 	  var arr = [];
+	  var voters = poll[0].voters || [];
+	  var obj = {};
 	  obj.label = option;
 	  obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
 	      return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
 	  obj.value = 1;
-	  poll[0][0].push(obj)
-	  firebaseRef.child(key).update({0: poll[0][0]}, function() {
+	  poll[0].data.push(obj)
+
+	  if (!checkVoters(voters, user)) {
+	    voters.push(user);
+	  }
+
+	  alreadyVoted = true;
+
+	  firebaseRef.child(key).update({data: poll[0].data}, function() {
 	    AppStore.emitChange();
 	  });
 	}
 
+	function checkVoters(arr, voter) {
+	  return arr.some(function(arrVal) {
+	    return voter === arrVal
+	  });
+	}
+
 	function addVote(key, selection, user) {
-	  var length = poll[0][0].length;
-	  var dataArr = poll[0];
+	  var length = poll[0].data.length;
+	  var dataArr = poll[0].data;
+	  var voters = poll[0].voters || [];
+
+	  if (!checkVoters(voters, user)) {
+	    voters.push(user);
+	  }
+
+	  alreadyVoted = true;
+
 	  for (var i = 0; i < length; i++) {
-	    if (dataArr[0][i].label === selection) {
-	      poll[0][0][i].value += 1;
+	    if (dataArr[i].label === selection) {
+	      poll[0].data[i].value += 1;
 	    }
 	  }
-	  firebaseRef.child(key).update({0: poll[0][0]});
+	  firebaseRef.child(key).update({data: poll[0].data, voters: voters});
 	  AppStore.emitChange();
 	}
 
@@ -46515,6 +46544,10 @@
 
 	  getModalStatus: function() {
 	    return showModal;
+	  },
+
+	  getVotedStatus: function() {
+	    return alreadyVoted;
 	  }
 	  
 	});
@@ -46536,7 +46569,7 @@
 	  }
 
 	  if (action.actionType === "GET_POLL") {
-	    getPoll(action.key);
+	    getPoll(action.key, action.user);
 	  }
 
 	  if (action.actionType === "GET_USER_POLLS") {
@@ -46552,7 +46585,7 @@
 	  }
 
 	  if (action.actionType === "NEW_OPTION") {
-	    newOption(action.key, action.option);
+	    newOption(action.key, action.option, action.user);
 	  }
 
 	  if (action.actionType === "ADD_VOTE") {
@@ -46888,15 +46921,13 @@
 	var AllPollsSelector = React.createClass({displayName: "AllPollsSelector",
 
 		render: function() {
-		  var createItem = function(item, i) {
-
+		  var createItem = function(poll, i) {
 		  		return (
 		  			React.createElement(AllPollsModal, {
-							item: item, 
+							poll: poll, 
 							i: i, 
 							key: i, 
-							pollData: this.props.pollData, 
-							userName: item[1]})
+							userName: poll.user})
 					);
 		  };
 		  return 	React.createElement("div", null, 
@@ -46921,10 +46952,10 @@
 
 	  render: function() {
 	    return (
-	      React.createElement(Col, {xs: 12, md: 6}, 
-	        React.createElement(Link, {to: `/users/mypolls/${this.props.userName}/${this.props.item['.key']}`}, 
+	      React.createElement(Col, {xs: 12, md: 8, mdOffset: 2}, 
+	        React.createElement(Link, {to: `/users/mypolls/${this.props.userName}/${this.props.poll['.key']}`}, 
 	        React.createElement(Button, {bsStyle: "primary", bsSize: "large", className: "poll-button", block: true}, 
-	          this.props.item[2]
+	          this.props.poll.title
 	        )
 	        )
 	      )
@@ -46948,11 +46979,11 @@
 
 	  render: function() {
 	    return (
-	        React.createElement(Col, {xs: 12, md: 6}, 
-	          React.createElement(Link, {to: `/users/allpolls/${this.props.userName}/${this.props.item['.key']}`}, 
-	          React.createElement(Button, {bsStyle: "primary", bsSize: "large", className: "poll-button", block: true}, 
-	            this.props.item[2]
-	          )
+	        React.createElement(Col, {xs: 12, md: 8, mdOffset: 2}, 
+	          React.createElement(Link, {to: `/users/allpolls/${this.props.userName}/${this.props.poll['.key']}`}, 
+	            React.createElement(Button, {bsStyle: "primary", bsSize: "large", className: "poll-button", block: true}, 
+	              this.props.poll.title
+	            )
 	          )
 	        )
 	    );
@@ -47113,11 +47144,11 @@
 
 	  componentDidMount: function() {
 	    var idToken = localStorage.getItem('id_token');
-
 	    if (idToken) {
 	      this.lock.getProfile(idToken, function (err, profile) {
 	        if (err) {
 	          console.log("Error loading the Profile", err);
+	          this.handleLogout();
 	          return;
 	        }
 	        this.setState({profile: profile});
@@ -47176,7 +47207,8 @@
 	function getPollState() {
 	  return {
 	    poll: AppStore.getPoll(),
-	    showModal: AppStore.getModalStatus()
+	    showModal: AppStore.getModalStatus(),
+	    alreadyVoted: AppStore.getVotedStatus()
 	  };
 	}
 
@@ -47190,8 +47222,8 @@
 		},
 
 		componentWillMount: function() {
-			PollActions.getPoll(this.props.params.key);
-			this.setState({showModal: true})
+			PollActions.getPoll(this.props.params.key, localStorage.getItem('user_name'));
+			this.setState({showModal: true});
 		},
 
 		componentDidMount: function() {
@@ -47226,7 +47258,7 @@
 		    	React.createElement("div", null, 
 		    	React.createElement(Modal, {show: this.state.showModal, onHide: this.close}, 
 		    	  React.createElement(Modal.Header, {closeButton: true}, 
-		    	    React.createElement(Modal.Title, null, this.state.poll[0][2])
+		    	    React.createElement(Modal.Title, null, this.state.poll[0].title)
 		    	  ), 
 		    	  React.createElement(Modal.Body, null, 
 	    	      React.createElement("div", null, 
@@ -47240,12 +47272,12 @@
 	    	              defaultValue: "default", 
 	    	              disabled: this.state.alreadyVoted}, 
 	    	              React.createElement("option", {disabled: true, value: "default"}), 
-	    	                this.state.poll[0][0].map(function(subitem, i) {
+	    	                this.state.poll[0].data.map(function(subitem, i) {
 	    	                  return React.createElement("option", {key: i, value: subitem.label}, subitem.label)}, this)
 	    	            ), 
-	    	            React.createElement(NewOption, {keyName: this.state.poll[0]['.key']})
+	    	            React.createElement(NewOption, {keyName: this.state.poll[0]['.key'], alreadyVoted: this.state.alreadyVoted})
 	    	          ), 
-	    	          React.createElement(PollPieChart, {data: this.state.poll[0][0]}), 
+	    	          React.createElement(PollPieChart, {data: this.state.poll[0].data}), 
 	    	          React.createElement(DeleteButton, {userName: this.props.params.userName, keyName: this.state.poll[0]['.key']})
 	    	        )
 	    	      )
@@ -51338,7 +51370,7 @@
 			if (this.state.user_name === this.props.userName) {
 				return ( 
 					React.createElement("div", null, 
-						React.createElement(TwitterButton, {className: "twitter-button"}, "Tweet"), 
+						React.createElement(TwitterButton, {className: "twitter-button", url: window.location}, "Tweet"), 
 						React.createElement(Button, {onClick: _this.handleDelete.bind(null, this.props.keyName), bsStyle: "danger", block: true}, "Delete")
 					)
 				) 
@@ -51905,7 +51937,8 @@
 			e.preventDefault();
 			var newOption = this.state.text;
 			var pollKey = this.props.keyName;
-			PollActions.newOption(pollKey, newOption);
+			var user = this.state.user_name;
+			PollActions.newOption(pollKey, newOption, user);
 			this.setState({text: ''});
 		},
 
@@ -51918,8 +51951,10 @@
 							 type: "text", 
 							 placeholder: "Write in your own selection", 
 							 value: this.state.text, 
-							 onChange: this.handleTextChange}), 
-							React.createElement(Button, {type: "submit"}, "Submit Write In")
+							 onChange: this.handleTextChange, 
+							 disabled: this.props.alreadyVoted, 
+							 required: true}), 
+							React.createElement(Button, {type: "submit", disabled: this.props.alreadyVoted}, "Submit Write In")
 						)
 					)
 				) 
@@ -52026,18 +52061,28 @@
 	  	var Row = ReactBootstrap.Row;
 	  	var Col = ReactBootstrap.Col;
 	  	var Grid = ReactBootstrap.Grid;
-		    return (
-		    	React.createElement("div", null, 
-		    		React.createElement("h2", null, "My Polls"), 
-			  		React.createElement(Grid, null, 
-			  			React.createElement(Row, null, 
-								React.createElement(MyPollsSelector, {
-								 pollData: this.state.pollData, 
-								 userName: this.props.params.userName})
-							)
-			  		)
+	  	  if (this.state.pollData[0] === undefined) {
+	  	  	return (
+		  	  	React.createElement("div", null, 
+		  	  	  React.createElement("h2", null, "MyPolls"), 
+		  	  	  React.createElement("h2", null, "No polls created yet")
+			  	  )
 		  		)
-		    );	
+	  	  } else {
+			    return (
+			    	React.createElement("div", null, 
+			    		React.createElement("h2", null, "My Polls"), 
+				  		React.createElement(Grid, null, 
+				  			React.createElement(Row, null, 
+									React.createElement(MyPollsSelector, {
+									 pollData: this.state.pollData, 
+									 userName: this.props.params.userName})
+								)
+				  		)
+			  		)
+			    );	
+
+	  	  }
 	  } 
 	});
 
@@ -52053,10 +52098,10 @@
 	var MyPollsSelector = React.createClass({displayName: "MyPollsSelector",
 
 		render: function() {
-		  var createItem = function(item, i) {
+		  var createItem = function(poll, i) {
 			    return (
 	  				React.createElement(MyPollsModal, {
-		  				item: item, 
+		  				poll: poll, 
 		  				i: i, 
 		  				key: i, 
 		  				pollData: this.props.pollData, 
@@ -52092,7 +52137,8 @@
 	function getPollState() {
 	  return {
 	    poll: AppStore.getPoll(),
-	    showModal: AppStore.getModalStatus()
+	    showModal: AppStore.getModalStatus(),
+	    alreadyVoted: AppStore.getVotedStatus()
 	  };
 	}
 
@@ -52106,7 +52152,7 @@
 		},
 
 		componentWillMount: function() {
-			PollActions.getPoll(this.props.params.key);
+			PollActions.getPoll(this.props.params.key, localStorage.getItem('user_name'));
 			this.setState({showModal: true})
 		},
 
@@ -52153,7 +52199,7 @@
 		    	React.createElement("div", null, 
 		    	React.createElement(Modal, {show: this.state.showModal, onHide: this.close}, 
 		    	  React.createElement(Modal.Header, {closeButton: true}, 
-		    	    React.createElement(Modal.Title, null, this.state.poll[0][2])
+		    	    React.createElement(Modal.Title, null, this.state.poll[0].title)
 		    	  ), 
 		    	  React.createElement(Modal.Body, null, 
 	    	      React.createElement("div", null, 
@@ -52167,12 +52213,12 @@
 	    	              defaultValue: "default", 
 	    	              disabled: this.state.alreadyVoted}, 
 	    	              React.createElement("option", {disabled: true, value: "default"}), 
-	    	                this.state.poll[0][0].map(function(subitem, i) {
+	    	                this.state.poll[0].data.map(function(subitem, i) {
 	    	                  return React.createElement("option", {key: i, value: subitem.label}, subitem.label)}, this)
 	    	            ), 
-	    	            React.createElement(NewOption, {keyName: this.state.poll[0]['.key']})
+	    	            React.createElement(NewOption, {keyName: this.state.poll[0]['.key'], alreadyVoted: this.state.alreadyVoted})
 	    	          ), 
-	    	          React.createElement(PollPieChart, {data: this.state.poll[0][0]}), 
+	    	          React.createElement(PollPieChart, {data: this.state.poll[0].data}), 
 	  	          	React.createElement(DeleteButton, {userName: this.props.params.userName, keyName: this.state.poll[0]['.key']})	
 	    	        )
 	    	      )
@@ -52227,6 +52273,7 @@
 	  	  this.lock.getProfile(idToken, function (err, profile) {
 	  	    if (err) {
 	  	      console.log("Error loading the Profile", err);
+	  	      this.handleLogout();
 	  	      return;
 	  	    }
 	  	    this.setState({profile: profile});
@@ -52255,10 +52302,15 @@
 			var title = this.state.title;
 			var text = this.state.text;
 			var user = this.state.profile.nickname;
-
 			PollActions.addPoll(title, text, user)
-
 			hashHistory.push(`/users/${this.state.profile.nickname}`);
+		},
+
+		handleLogout: function() {
+			localStorage.removeItem('id_token');
+	    localStorage.removeItem('user_name');
+			hashHistory.push('/');
+			PollActions.logOut();
 		},
 
 	  render: function() {
@@ -52285,6 +52337,7 @@
 					  				 onChange: this.handleInputTitle, 
 					  				 value: this.state.title, 
 					  				 placeholder: "Poll Title", 
+					  				 maxLength: "60", 
 					  				 required: true})
 				  				), 
 									React.createElement(FormGroup, {controlId: "formControlsTextarea"}, 
@@ -52295,6 +52348,7 @@
 					  				 value: this.state.text, 
 					  				 onChange: this.handleInputOptions, 
 					  				 placeholder: "Options", 
+					  				 maxLength: "80", 
 					  				 required: true})
 									), 
 				  				React.createElement(Button, {type: "submit", bsStyle: "primary", block: true}, "Add Poll")

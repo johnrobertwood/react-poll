@@ -16,7 +16,8 @@ var TwitterButton = require('react-social').TwitterButton;
 function getPollState() {
   return {
     poll: AppStore.getPoll(),
-    showModal: AppStore.getModalStatus()
+    showModal: AppStore.getModalStatus(),
+    alreadyVoted: AppStore.getVotedStatus()
   };
 }
 
@@ -30,8 +31,8 @@ var MyPollView = React.createClass({
 	},
 
 	componentWillMount: function() {
-		PollActions.getPoll(this.props.params.key);
-		this.setState({showModal: true})
+		PollActions.getPoll(this.props.params.key, localStorage.getItem('user_name'));
+		this.setState({showModal: true});
 	},
 
 	componentDidMount: function() {
@@ -66,7 +67,7 @@ var MyPollView = React.createClass({
 	    	<div>
 	    	<Modal show={this.state.showModal} onHide={this.close}>
 	    	  <Modal.Header closeButton>
-	    	    <Modal.Title>{this.state.poll[0][2]}</Modal.Title>
+	    	    <Modal.Title>{this.state.poll[0].title}</Modal.Title>
 	    	  </Modal.Header>
 	    	  <Modal.Body>
     	      <div>
@@ -80,12 +81,12 @@ var MyPollView = React.createClass({
     	              defaultValue="default"
     	              disabled={this.state.alreadyVoted} >
     	              <option disabled value="default"></option>
-    	                {this.state.poll[0][0].map(function(subitem, i) {
+    	                {this.state.poll[0].data.map(function(subitem, i) {
     	                  return <option key={i} value={subitem.label}>{subitem.label}</option>}, this)}
     	            </FormControl>
-    	            <NewOption keyName={this.state.poll[0]['.key']} />
+    	            <NewOption keyName={this.state.poll[0]['.key']} alreadyVoted={this.state.alreadyVoted} />
     	          </FormGroup>
-    	          <PollPieChart data={this.state.poll[0][0]} />
+    	          <PollPieChart data={this.state.poll[0].data} />
     	          <DeleteButton userName={this.props.params.userName} keyName={this.state.poll[0]['.key']} />
     	        </div>
     	      </div>

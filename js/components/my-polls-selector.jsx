@@ -4,10 +4,10 @@ var MyPollsModal = require('./my-polls-modal.jsx');
 var MyPollsSelector = React.createClass({
 
 	render: function() {
-	  var createItem = function(item, i) {
+	  var createItem = function(poll, i) {
 		    return (
   				<MyPollsModal 
-	  				item={item} 
+	  				poll={poll} 
 	  				i={i} 
 	  				key={i} 
 	  				pollData={this.props.pollData} 

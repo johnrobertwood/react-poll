@@ -24,10 +24,11 @@ var PollActions = {
     });
   },
 
-  getPoll: function(key) {
+  getPoll: function(key, user) {
     AppDispatcher.dispatch({
       actionType: PollConstants.GET_POLL,
-      key: key
+      key: key,
+      user: user
     });
   },
 
@@ -59,11 +60,12 @@ var PollActions = {
     });
   },
 
-  newOption: function(key, option) {
+  newOption: function(key, option, user) {
     AppDispatcher.dispatch({
       actionType: PollConstants.NEW_OPTION,
       key: key,
-      option: option
+      option: option,
+      user: user
     });
   },
 
