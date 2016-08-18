@@ -15,10 +15,12 @@ var PollActions = {
     });
   },
   
-  addPoll: function(poll) {
+  addPoll: function(title, text, user) {
     AppDispatcher.dispatch({
       actionType: PollConstants.ADD_POLL,
-      poll: poll
+      title: title,
+      text: text,
+      user: user
     });
   },
 
@@ -63,8 +65,16 @@ var PollActions = {
       key: key,
       option: option
     });
-  }
+  },
 
+  addVote: function(key, selection, user) {
+    AppDispatcher.dispatch({
+      actionType: PollConstants.ADD_VOTE,
+      key: key,
+      selection: selection,
+      user: user
+    });
+  }
 };
 
 module.exports = PollActions;

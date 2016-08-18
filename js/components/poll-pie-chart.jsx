@@ -5,7 +5,6 @@ var AppStore = require('../stores/AppStore.jsx');
 var PollPieChart = React.createClass({
 
   getInitialState: function() {
-    // return {legend: ""}
     return {legend: this.refs.chart}
   },
 
@@ -54,7 +53,6 @@ var PollPieChart = React.createClass({
   	    //Boolean - Whether we animate scaling the Doughnut from the centre
   	    animateScale : false
   	}
-    console.log(this.state.legend);
     return (
     	<div className="chart">
 	    	<div className="legend" dangerouslySetInnerHTML={{ __html: legend }} />

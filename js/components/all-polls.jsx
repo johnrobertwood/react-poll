@@ -33,18 +33,18 @@ var UserAllPolls = React.createClass({
   	var Row = ReactBootstrap.Row;
   	var Col = ReactBootstrap.Col;
   	var Grid = ReactBootstrap.Grid;
-	    return (
-	    	<div>
-		    	<h2>Vote on a Poll or Create Your Own</h2>
-		  		<Grid>
-		  			<Row>
-							<AllPollsSelector 
-							 pollData={this.state.pollData} 
-							 userName={this.props.params.userName} /> 
-						</Row>
-		  		</Grid>
-	  		</div>
-	    );	
+    return (
+    	<div>
+	    	<h2>Vote on a Poll or Create Your Own</h2>
+	  		<Grid>
+	  			<Row>
+						<AllPollsSelector 
+						 pollData={this.state.pollData} 
+						 userName={this.props.params.userName} /> 
+					</Row>
+	  		</Grid>
+  		</div>
+    );	
   } 
 });
 

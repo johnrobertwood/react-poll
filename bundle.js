@@ -53,9 +53,9 @@
 	var Home = __webpack_require__(238);
 	var App = __webpack_require__(502);
 	var MyPollView = __webpack_require__(505);
-	var AllPolls = __webpack_require__(519);
-	var MyPolls = __webpack_require__(520);
-	var AllPollView = __webpack_require__(522);
+	var AllPolls = __webpack_require__(520);
+	var MyPolls = __webpack_require__(521);
+	var AllPollView = __webpack_require__(523);
 	var AddPoll = __webpack_require__(524);
 	__webpack_require__(525);
 
@@ -27143,19 +27143,19 @@
 	  	var Row = ReactBootstrap.Row;
 	  	var Col = ReactBootstrap.Col;
 	  	var Grid = ReactBootstrap.Grid;
-		    return (
-		    	React.createElement("div", null, 
-			    	React.createElement("h2", null, "Vote on a Poll or Create Your Own"), 
-			  		React.createElement(Grid, null, 
-			  			React.createElement(Row, null, 
-								React.createElement(AllPollsSelector, {
-								 pollData: this.state.pollData, 
-								 userName: this.props.params.userName, 
-								 loggedIn: true})
-							)
-			  		)
+	    return (
+	    	React.createElement("div", null, 
+		    	React.createElement("h2", null, "Vote on a Poll or Create Your Own"), 
+		  		React.createElement(Grid, null, 
+		  			React.createElement(Row, null, 
+							React.createElement(AllPollsSelector, {
+							 pollData: this.state.pollData, 
+							 userName: this.props.params.userName, 
+							 loggedIn: true})
+						)
 		  		)
-		    );	
+	  		)
+	    );	
 	  } 
 	});
 
@@ -45858,10 +45858,12 @@
 	    });
 	  },
 	  
-	  addPoll: function(poll) {
+	  addPoll: function(title, text, user) {
 	    AppDispatcher.dispatch({
 	      actionType: PollConstants.ADD_POLL,
-	      poll: poll
+	      title: title,
+	      text: text,
+	      user: user
 	    });
 	  },
 
@@ -45906,8 +45908,16 @@
 	      key: key,
 	      option: option
 	    });
-	  }
+	  },
 
+	  addVote: function(key, selection, user) {
+	    AppDispatcher.dispatch({
+	      actionType: PollConstants.ADD_VOTE,
+	      key: key,
+	      selection: selection,
+	      user: user
+	    });
+	  }
 	};
 
 	module.exports = PollActions;
@@ -46245,7 +46255,8 @@
 	  GET_ALL_POLLS: null,
 	  GET_USER_POLLS: null,
 	  DEL_POLL: null,
-	  NEW_OPTION: null
+	  NEW_OPTION: null,
+	  ADD_VOTE: null
 	});
 
 
@@ -46330,6 +46341,8 @@
 
 	var user = '';
 
+	var firebaseRef = firebase.database().ref('pollData');
+
 	function logIn() {
 	  loggedIn = true;
 	}
@@ -46346,15 +46359,33 @@
 	  showModal = true;
 	}
 
-	function addPoll(poll) {
-	  firebase.database().ref('pollData').push(poll, function() {
+	function addPoll(title, text, user) {
+
+	  var choices = text.split(',').map(function(item) {return [item];});
+	  var colors = choices.map(function() {
+	    return '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+	      return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+	  })
+	  var initialData = choices.map(function(item) {return 0;});
+	  var pieData = text.split(',').map(function(item) {
+	    var obj = {}
+	    obj.label = item;
+	    obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+	      return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+	    obj.value = 0;
+	    return obj;
+	  })
+
+	  var poll = [pieData, user, title];
+
+	  firebaseRef.push(poll, function() {
 	    AppStore.emitChange();
 	  });
 	}
 
-	function getPolls(key) {
+	function getPoll(key) {
 	  polls = [];
-	  firebase.database().ref('pollData').once('value', function(snapshot) {
+	  firebaseRef.once('value', function(snapshot) {
 	    var obj = snapshot.val();
 	    for (var prop in obj) {
 	      item = [];
@@ -46375,7 +46406,7 @@
 
 	function getAllPolls() {
 	  polls = [];
-	  firebase.database().ref('pollData').once('value', function(snapshot) {
+	  firebaseRef.once('value', function(snapshot) {
 	    var obj = snapshot.val();
 	    for (var prop in obj) {
 	      item = [];
@@ -46393,7 +46424,7 @@
 
 	function getUserPolls(user) {
 	  userPolls = [];
-	  firebase.database().ref('pollData').once('value', function(snapshot) {
+	  firebaseRef.once('value', function(snapshot) {
 	    var obj = snapshot.val();
 
 	    for (var prop in obj) {
@@ -46414,7 +46445,6 @@
 	}
 
 	function delPoll(key, userName) {
-	  var firebaseRef = firebase.database().ref('pollData');
 	  firebaseRef.child(key).remove()
 	  userPolls = userPolls.filter(function(poll) {
 	    return poll['.key'] !== key;
@@ -46425,21 +46455,27 @@
 	}
 
 	function newOption(key, option) {
-	  var firebaseRef = firebase.database().ref('pollData');
-
-	  var obj = {}
+	  var obj = {};
+	  var arr = [];
 	  obj.label = option;
 	  obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
 	      return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
 	  obj.value = 1;
-	  var firebaseRef = firebase.database().ref('pollData').child(key);
-	  firebaseRef.once('value', function(snap) {
-	    var arr = snap.val();
-	    arr[0].push(obj)
-	    console.log(arr[0])
-	    firebaseRef.set(arr);
+	  poll[0][0].push(obj)
+	  firebaseRef.child(key).update({0: poll[0][0]}, function() {
+	    AppStore.emitChange();
 	  });
+	}
 
+	function addVote(key, selection, user) {
+	  var length = poll[0][0].length;
+	  var dataArr = poll[0];
+	  for (var i = 0; i < length; i++) {
+	    if (dataArr[0][i].label === selection) {
+	      poll[0][0][i].value += 1;
+	    }
+	  }
+	  firebaseRef.child(key).update({0: poll[0][0]});
 	  AppStore.emitChange();
 	}
 
@@ -46484,7 +46520,6 @@
 	});
 
 	AppDispatcher.register(function(action){
-	  var text;
 
 	  if (action.actionType === "LOG_IN") {
 	    loggedIn = true;
@@ -46497,11 +46532,11 @@
 	  }
 
 	  if (action.actionType === "ADD_POLL") {
-	    addPoll(action.poll);
+	    addPoll(action.title, action.text, action.user);
 	  }
 
 	  if (action.actionType === "GET_POLL") {
-	    getPolls(action.key);
+	    getPoll(action.key);
 	  }
 
 	  if (action.actionType === "GET_USER_POLLS") {
@@ -46517,7 +46552,11 @@
 	  }
 
 	  if (action.actionType === "NEW_OPTION") {
-	    newOption(action.option);
+	    newOption(action.key, action.option);
+	  }
+
+	  if (action.actionType === "ADD_VOTE") {
+	    addVote(action.key, action.selection, action.user);
 	  }
 	  
 	  return true;
@@ -46882,7 +46921,7 @@
 
 	  render: function() {
 	    return (
-	      React.createElement(Col, {xs: 12, md: 4}, 
+	      React.createElement(Col, {xs: 12, md: 6}, 
 	        React.createElement(Link, {to: `/users/mypolls/${this.props.userName}/${this.props.item['.key']}`}, 
 	        React.createElement(Button, {bsStyle: "primary", bsSize: "large", className: "poll-button", block: true}, 
 	          this.props.item[2]
@@ -46909,7 +46948,7 @@
 
 	  render: function() {
 	    return (
-	        React.createElement(Col, {xs: 12, md: 4}, 
+	        React.createElement(Col, {xs: 12, md: 6}, 
 	          React.createElement(Link, {to: `/users/allpolls/${this.props.userName}/${this.props.item['.key']}`}, 
 	          React.createElement(Button, {bsStyle: "primary", bsSize: "large", className: "poll-button", block: true}, 
 	            this.props.item[2]
@@ -46962,10 +47001,6 @@
 
 	  componentWillUnmount: function() {
 	    AppStore.removeChangeListener(this._onChange);
-	  },
-
-	  createLock: function() {
-	      this.lock = new Auth0Lock(this.props.clientId, this.props.domain);
 	  },
 
 	  getIdToken: function() {
@@ -47026,6 +47061,7 @@
 	var React = __webpack_require__(1);
 	var Link = __webpack_require__(175).Link;
 	var Button = __webpack_require__(239).Button;
+
 	var Login = React.createClass({displayName: "Login",
 
 	  componentWillMount: function() {
@@ -47134,6 +47170,7 @@
 	var PollActions = __webpack_require__(490);
 	var PollPieChart = __webpack_require__(506);
 	var DeleteButton = __webpack_require__(517);
+	var NewOption = __webpack_require__(519);
 	var TwitterButton = __webpack_require__(518).TwitterButton;
 
 	function getPollState() {
@@ -47147,14 +47184,14 @@
 
 		getInitialState: function() {
 			return {
-				poll: null
+				poll: null,
+				alreadyVoted: false
 			}
 		},
 
 		componentWillMount: function() {
 			PollActions.getPoll(this.props.params.key);
 			this.setState({showModal: true})
-
 		},
 
 		componentDidMount: function() {
@@ -47175,19 +47212,10 @@
 		},
 
 		handleChange: function(e) {
-		  var firebaseRef = firebase.database().ref('pollData');
-		  var pollIndex = e.target.getAttribute('data-index');
-		  var pollKey = this.props.params.key;
-		  var length = this.state.poll[0][0].length;
-		  var dataArr = this.state.poll[0];
-		  var updatedPoll;
-		  for (var i = 0; i < length; i++) {
-		    if (dataArr[0][i].label === e.target.value) {
-		      this.state.poll[0][0][i].value += 1;
-		      firebaseRef.child(pollKey).update({0: this.state.poll[0][0]});
-		      AppStore.emitChange();
-		    }
-		  }
+			var user = localStorage.getItem('user_name');
+			var key = this.props.params.key;
+			var selection = e.target.value;
+			PollActions.addVote(key, selection, user);
 		},
 
 	  render: function() {
@@ -47209,11 +47237,13 @@
 	    	              componentClass: "select", 
 	    	              "data-key": this.state.poll['.key'], 
 	    	              onChange: this.handleChange, 
-	    	              defaultValue: "default"}, 
+	    	              defaultValue: "default", 
+	    	              disabled: this.state.alreadyVoted}, 
 	    	              React.createElement("option", {disabled: true, value: "default"}), 
 	    	                this.state.poll[0][0].map(function(subitem, i) {
 	    	                  return React.createElement("option", {key: i, value: subitem.label}, subitem.label)}, this)
-	    	            )
+	    	            ), 
+	    	            React.createElement(NewOption, {keyName: this.state.poll[0]['.key']})
 	    	          ), 
 	    	          React.createElement(PollPieChart, {data: this.state.poll[0][0]}), 
 	    	          React.createElement(DeleteButton, {userName: this.props.params.userName, keyName: this.state.poll[0]['.key']})
@@ -47221,8 +47251,7 @@
 	    	      )
 		    	  ), 
 		    	  React.createElement(Modal.Footer, null, 
-		    	    React.createElement(Button, {onClick: this.close, bsStyle: "info", block: true}, "Close")
-							
+		    	    React.createElement(Button, {onClick: this.close, bsStyle: "info", block: true}, "Close")	
 		    	  )
 		    	)
 		  		)
@@ -47239,13 +47268,28 @@
 
 	var React = __webpack_require__(1);
 	var PieChart = __webpack_require__(507).Pie;
+	var AppStore = __webpack_require__(497);
 
 	var PollPieChart = React.createClass({displayName: "PollPieChart",
 
+	  getInitialState: function() {
+	    return {legend: this.refs.chart}
+	  },
+
 		componentDidMount: function() {
 			var legend = this.refs.chart.getChart().generateLegend();
-			this.setState({legend: legend});
+	    this.setState({legend: legend});
+	    AppStore.addChangeListener(this._onChange);
 		},
+
+	  componentWillUnmount: function() {
+	    AppStore.removeChangeListener(this._onChange);
+	  },
+
+	  _onChange: function() {
+	    var legend = this.refs.chart.getChart().generateLegend();
+	    this.setState({legend: legend});
+	  },
 
 	  render: function() {
 
@@ -47277,7 +47321,6 @@
 	  	    //Boolean - Whether we animate scaling the Doughnut from the centre
 	  	    animateScale : false
 	  	}
-
 	    return (
 	    	React.createElement("div", {className: "chart"}, 
 		    	React.createElement("div", {className: "legend", dangerouslySetInnerHTML: { __html: legend}}), 
@@ -51839,6 +51882,60 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
+	var ReactBootstrap = __webpack_require__(239);
+	var FormControl = ReactBootstrap.FormControl;
+	var FieldGroup = ReactBootstrap.FieldGroup;
+	var Button = ReactBootstrap.Button;
+	var Form = ReactBootstrap.Form
+	var PollActions = __webpack_require__(490);
+	var hashHistory = __webpack_require__(175).hashHistory;
+	var AppStore = __webpack_require__(497);
+
+	var NewOption = React.createClass({displayName: "NewOption",
+
+		getInitialState: function() {
+			return {user_name: localStorage.getItem('user_name'), text: ''}
+		},
+
+		handleTextChange: function(e) {
+			this.setState({text: e.target.value});
+		},
+
+		handleSubmit: function(e) {
+			e.preventDefault();
+			var newOption = this.state.text;
+			var pollKey = this.props.keyName;
+			PollActions.newOption(pollKey, newOption);
+			this.setState({text: ''});
+		},
+
+		render: function() {
+			if (this.state.user_name) {
+				return ( 
+					React.createElement("div", null, 
+						React.createElement(Form, {className: "newOptionForm", onSubmit: this.handleSubmit}, 
+							React.createElement(FormControl, {
+							 type: "text", 
+							 placeholder: "Write in your own selection", 
+							 value: this.state.text, 
+							 onChange: this.handleTextChange}), 
+							React.createElement(Button, {type: "submit"}, "Submit Write In")
+						)
+					)
+				) 
+			} else {
+				return (React.createElement("div", null));
+			}
+		}
+	})
+
+	module.exports = NewOption;
+
+/***/ },
+/* 520 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(1);
 	var AllPollsSelector = __webpack_require__(499);
 	var ReactBootstrap = __webpack_require__(239);
 	var PollActions = __webpack_require__(490);
@@ -51873,29 +51970,29 @@
 	  	var Row = ReactBootstrap.Row;
 	  	var Col = ReactBootstrap.Col;
 	  	var Grid = ReactBootstrap.Grid;
-		    return (
-		    	React.createElement("div", null, 
-			    	React.createElement("h2", null, "Vote on a Poll or Create Your Own"), 
-			  		React.createElement(Grid, null, 
-			  			React.createElement(Row, null, 
-								React.createElement(AllPollsSelector, {
-								 pollData: this.state.pollData, 
-								 userName: this.props.params.userName})
-							)
-			  		)
+	    return (
+	    	React.createElement("div", null, 
+		    	React.createElement("h2", null, "Vote on a Poll or Create Your Own"), 
+		  		React.createElement(Grid, null, 
+		  			React.createElement(Row, null, 
+							React.createElement(AllPollsSelector, {
+							 pollData: this.state.pollData, 
+							 userName: this.props.params.userName})
+						)
 		  		)
-		    );	
+	  		)
+	    );	
 	  } 
 	});
 
 	module.exports = UserAllPolls;
 
 /***/ },
-/* 520 */
+/* 521 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
-	var MyPollsSelector = __webpack_require__(521);
+	var MyPollsSelector = __webpack_require__(522);
 	var ReactBootstrap = __webpack_require__(239);
 	var PollActions = __webpack_require__(490);
 	var AppStore = __webpack_require__(497);
@@ -51947,7 +52044,7 @@
 	module.exports = UserMyPolls;
 
 /***/ },
-/* 521 */
+/* 522 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
@@ -51975,7 +52072,7 @@
 	module.exports = MyPollsSelector;
 
 /***/ },
-/* 522 */
+/* 523 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
@@ -51990,7 +52087,7 @@
 	var PollActions = __webpack_require__(490);
 	var PollPieChart = __webpack_require__(506);
 	var DeleteButton = __webpack_require__(517);
-	var NewOption = __webpack_require__(523);
+	var NewOption = __webpack_require__(519);
 
 	function getPollState() {
 	  return {
@@ -52003,7 +52100,8 @@
 
 		getInitialState: function() {
 			return {
-				poll: null
+				poll: null,
+				alreadyVoted: false
 			}
 		},
 
@@ -52034,20 +52132,10 @@
 		},
 
 		handleChange: function(e) {
-		  var firebaseRef = firebase.database().ref('pollData');
-		  var pollIndex = e.target.getAttribute('data-index');
-		  var pollKey = this.props.params.key;
-		  var length = this.state.poll[0][0].length;
-		  var dataArr = this.state.poll[0];
-		  var localUser = localStorage.getItem('user_name');
-		  for (var i = 0; i < length; i++) {
-		    if (dataArr[0][i].label === e.target.value) {
-		      this.state.poll[0][0][i].value += 1;
-		      firebaseRef.child(pollKey).update({0: this.state.poll[0][0]});
-		      // firebaseRef.child(pollKey).push({voter: localUser})
-		      AppStore.emitChange();
-		    }
-		  }
+		  var key = this.props.params.key;
+		  var selection = e.target.value;
+		  var user = localStorage.getItem('user_name');
+		  PollActions.addVote(key, selection, user);
 		},
 
 		handleDelete: function(key) {
@@ -52076,7 +52164,8 @@
 	    	              componentClass: "select", 
 	    	              "data-key": this.state.poll['.key'], 
 	    	              onChange: this.handleChange, 
-	    	              defaultValue: "default"}, 
+	    	              defaultValue: "default", 
+	    	              disabled: this.state.alreadyVoted}, 
 	    	              React.createElement("option", {disabled: true, value: "default"}), 
 	    	                this.state.poll[0][0].map(function(subitem, i) {
 	    	                  return React.createElement("option", {key: i, value: subitem.label}, subitem.label)}, this)
@@ -52099,117 +52188,6 @@
 	});
 
 	module.exports = MyPollView;
-
-/***/ },
-/* 523 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(1);
-	var ReactBootstrap = __webpack_require__(239);
-	var FormControl = ReactBootstrap.FormControl;
-	var FieldGroup = ReactBootstrap.FieldGroup;
-	var Button = ReactBootstrap.Button;
-	var Form = ReactBootstrap.Form
-	var PollActions = __webpack_require__(490);
-	var hashHistory = __webpack_require__(175).hashHistory;
-
-	var NewOption = React.createClass({displayName: "NewOption",
-
-		getInitialState: function() {
-			return {user_name: localStorage.getItem('user_name'), text: ''}
-		},
-
-		close: function() {
-		  this.setState({ showModal: false });
-		  hashHistory.push(`/users/allpolls/${this.props.userName}`)
-		},
-
-		handleDelete: function(key) {
-		  var userName = this.props.userName;
-		  PollActions.delPoll(key, userName);
-		  hashHistory.push(`/users/allpolls/${this.props.userName}`)
-		},
-
-		handleTextChange: function(e) {
-			this.setState({text: e.target.value});
-		},
-
-		// handleSubmit: function(e) {
-		// 	e.preventDefault();
-		// 	PollActions.newOption(this.props.keyName, this.state.text);
-		// },
-
-		// handleSubmit: function(e) {
-		// 	e.preventDefault();
-		// 	var title = this.state.title;
-		// 	var parseText = this.state.text.split(',');
-		// 	var choices = parseText.map(function(item) {return [item];});
-		// 	var colors = choices.map(function() {
-		// 		return '#'+'0123456789abcdef'.split('').map(function(v,i,a){
-		// 		  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
-		// 	})
-		// 	var initialData = choices.map(function(item) {return 0;});
-		// 	var pieData = parseText.map(function(item) {
-		// 		var obj = {}
-		// 		obj.label = item;
-		// 		obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
-		// 		  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
-		// 		obj.value = 0;
-		// 		return obj;
-		// 	})
-		// 	var nickname = this.state.profile.nickname;
-		// 	var nextText = '';
-		// 	var nextTitle = '';
-		// 	var nextChart = this.state.pollData.concat([pieData]);
-
-		// 	PollActions.addPoll([pieData, nickname, title]);
-
-		// 	this.setState({text: nextText, title: nextTitle});
-
-		// 	hashHistory.push(`/users/${this.state.profile.nickname}`);
-			
-		// },
-
-		handleSubmit: function(e) {
-			e.preventDefault();
-			var newOption = this.state.text;
-			var pollKey = this.props.keyName;
-			PollActions.newOption(newOption, pollKey);
-			// var obj = {}
-			// obj.label = this.state.text;
-			// obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
-			// 	  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
-			// obj.value = 1;
-		 //  var firebaseRef = firebase.database().ref('pollData').child(this.props.keyName);
-		 //  firebaseRef.once('value', function(snap) {
-		 //  	var arr = snap.val();
-		 //  	console.log(arr)
-		 //  	arr[0].push(obj)
-		 //  });
-		},
-
-		render: function() {
-
-			if (this.state.user_name) {
-				return ( 
-					React.createElement("div", null, 
-						React.createElement(Form, {className: "newOptionForm", onSubmit: this.handleSubmit}, 
-							React.createElement(FormControl, {
-							 type: "text", 
-							 placeholder: "Add A New Option", 
-							 value: this.state.text, 
-							 onChange: this.handleTextChange}), 
-							React.createElement(Button, {type: "submit"}, "Add New")
-						)
-					)
-				) 
-			} else {
-				return (React.createElement("div", null, "test"));
-			}
-		}
-	})
-
-	module.exports = NewOption;
 
 /***/ },
 /* 524 */
@@ -52237,12 +52215,9 @@
 
 		componentWillMount: function() {
 			this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
-			var firebaseRef = firebase.database().ref('pollData');
 		},
 
 		componentDidMount: function() {
-
-		  var userRef = firebase.database().ref('users')
 		  AppStore.addChangeListener(this._onChange);
 
 	  	var idToken = localStorage.getItem('id_token');
@@ -52257,7 +52232,6 @@
 	  	    this.setState({profile: profile});
 	  	  }.bind(this));
 	    }
-
 		},
 
 		componentWillUnmount: function() {
@@ -52279,32 +52253,12 @@
 		handleSubmit: function(e) {
 			e.preventDefault();
 			var title = this.state.title;
-			var parseText = this.state.text.split(',');
-			var choices = parseText.map(function(item) {return [item];});
-			var colors = choices.map(function() {
-				return '#'+'0123456789abcdef'.split('').map(function(v,i,a){
-				  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
-			})
-			var initialData = choices.map(function(item) {return 0;});
-			var pieData = parseText.map(function(item) {
-				var obj = {}
-				obj.label = item;
-				obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
-				  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
-				obj.value = 0;
-				return obj;
-			})
-			var nickname = this.state.profile.nickname;
-			var nextText = '';
-			var nextTitle = '';
-			var nextChart = this.state.pollData.concat([pieData]);
+			var text = this.state.text;
+			var user = this.state.profile.nickname;
 
-			PollActions.addPoll([pieData, nickname, title]);
-
-			this.setState({text: nextText, title: nextTitle});
+			PollActions.addPoll(title, text, user)
 
 			hashHistory.push(`/users/${this.state.profile.nickname}`);
-			
 		},
 
 	  render: function() {
@@ -52390,7 +52344,7 @@
 
 
 	// module
-	exports.push([module.id, "h2 {\n  text-align: center;\n  margin-bottom: 40px; }\n\nul.pie-legend {\n  text-align: center;\n  list-style: none;\n  padding: 30px 0; }\n\nheader {\n  margin-bottom: 40px; }\n\n.active {\n  color: #000; }\n\na:hover, a:active, a:visited, a:focus {\n  text-decoration: none; }\n\n.pie-legend li {\n  display: inline-block; }\n\n.pie-legend span {\n  padding: 10px; }\n\nspan.pie-legend-icon {\n  margin: 5px; }\n\nnav ul li {\n  display: inline-block;\n  margin: 10px; }\n\n#new-todo {\n  padding: 20px; }\n\ndiv.modal-header {\n  text-align: center; }\n\ndiv.modal-content {\n  padding-left: 30px;\n  padding-right: 30px; }\n\n.chart {\n  display: flex;\n  justify-content: center; }\n\n.pie-legend {\n  display: flex;\n  flex-direction: column; }\n  .pie-legend li {\n    margin-top: 20px;\n    text-align: left; }\n\ndiv.chart {\n  margin-bottom: 20px; }\n\ndiv.modal-footer {\n  padding-left: 0;\n  padding-right: 0; }\n\n@media (max-width: 500px) {\n  .chart {\n    display: flex;\n    flex-direction: column-reverse; }\n  .legend {\n    margin: 0 auto; } }\n\n.twitter-button {\n  display: inline-block;\n  padding: 6px 12px 6px 30px;\n  margin: 10px 0;\n  border: #ccc solid 1px;\n  border-radius: 3px;\n  background: #f8f8f8 url(\"data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNy4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSIwIDAgNzIgNzIiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDcyIDcyIiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxyZWN0IHg9IjAiIGZpbGw9Im5vbmUiIHdpZHRoPSI3MiIgaGVpZ2h0PSI3MiIvPg0KPHBhdGggZmlsbD0iIzU1YWNlZSIgZD0iTTY4LjgxMiwxNS4xNDFjLTIuMzQ4LDEuMDM5LTQuODY5LDEuNzQzLTcuNTE5LDIuMDZjMi43MDMtMS42Miw0Ljc3OC00LjE4Nyw1Ljc1Ni03LjI0NGMtMi41MjksMS41LTUuMzMsMi41OTItOC4zMTMsMy4xNzYNCglDNTYuMzQ5LDEwLjU5MSw1Mi45NDgsOSw0OS4xODIsOWMtNy4yMjksMC0xMy4wOTIsNS44NjEtMTMuMDkyLDEzLjA5M2MwLDEuMDI2LDAuMTE4LDIuMDIxLDAuMzM4LDIuOTgxDQoJYy0xMC44ODUtMC41NDgtMjAuNTI4LTUuNzU3LTI2Ljk4Ny0xMy42NzljLTEuMTI2LDEuOTM2LTEuNzcxLDQuMTg0LTEuNzcxLDYuNTgxYzAsNC41NDIsMi4zMTIsOC41NTEsNS44MjQsMTAuODk4DQoJYy0yLjE0Ni0wLjA2OS00LjE2NS0wLjY1Ny01LjkzLTEuNjM4Yy0wLjAwMiwwLjA1NS0wLjAwMiwwLjExLTAuMDAyLDAuMTYyYzAsNi4zNDUsNC41MTMsMTEuNjM4LDEwLjUwNCwxMi44NA0KCWMtMS4xMDEsMC4yOTgtMi4yNTYsMC40NTctMy40NDksMC40NTdjLTAuODQ2LDAtMS42NjctMC4wNzgtMi40NjUtMC4yMzFjMS42NjcsNS4yLDYuNDk5LDguOTg2LDEyLjIzLDkuMDkNCgljLTQuNDgyLDMuNTEyLTEwLjEyOSw1LjYwNi0xNi4yNiw1LjYwNmMtMS4wNTUsMC0yLjA5Ni0wLjA2MS0zLjEyMi0wLjE4NGM1Ljc5NCwzLjcxNywxMi42NzYsNS44ODIsMjAuMDY3LDUuODgyDQoJYzI0LjA4MywwLDM3LjI1MS0xOS45NDksMzcuMjUxLTM3LjI0OWMwLTAuNTY2LTAuMDE0LTEuMTM0LTAuMDM5LTEuNjk0QzY0LjgzOCwyMC4wNjgsNjcuMDU4LDE3Ljc2NSw2OC44MTIsMTUuMTQxeiIvPg0KPC9zdmc+DQo=\") 8px 8px no-repeat;\n  background-size: 1em 1em;\n  font: normal 12px/18px Helvetica, Arial, sans-serif;\n  color: #333;\n  white-space: nowrap; }\n\n.poll-button {\n  margin-bottom: 20px;\n  padding: 30px 60px; }\n", ""]);
+	exports.push([module.id, "h2 {\n  text-align: center;\n  margin-bottom: 40px; }\n\nul.pie-legend {\n  text-align: center;\n  list-style: none;\n  padding: 30px 0; }\n\nheader {\n  margin-bottom: 40px; }\n\n.active {\n  color: #000; }\n\na:hover, a:active, a:visited, a:focus {\n  text-decoration: none; }\n\n.pie-legend li {\n  display: inline-block; }\n\n.pie-legend span {\n  padding: 10px; }\n\nspan.pie-legend-icon {\n  margin: 5px; }\n\nnav ul li {\n  display: inline-block;\n  margin: 10px; }\n\n#new-todo {\n  padding: 20px; }\n\ndiv.modal-header {\n  text-align: center; }\n\ndiv.modal-content {\n  padding-left: 30px;\n  padding-right: 30px; }\n\n.chart {\n  display: flex;\n  justify-content: center; }\n\n.pie-legend {\n  display: flex;\n  flex-direction: column; }\n  .pie-legend li {\n    margin-top: 20px;\n    text-align: left; }\n\ndiv.chart {\n  margin-bottom: 20px; }\n\ndiv.modal-footer {\n  padding-left: 0;\n  padding-right: 0; }\n\n@media (max-width: 500px) {\n  .chart {\n    display: flex;\n    flex-direction: column-reverse; }\n  .legend {\n    margin: 0 auto; } }\n\n.twitter-button {\n  display: inline-block;\n  padding: 6px 12px 6px 30px;\n  margin: 10px 0;\n  border: #ccc solid 1px;\n  border-radius: 3px;\n  background: #f8f8f8 url(\"data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNy4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSIwIDAgNzIgNzIiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDcyIDcyIiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxyZWN0IHg9IjAiIGZpbGw9Im5vbmUiIHdpZHRoPSI3MiIgaGVpZ2h0PSI3MiIvPg0KPHBhdGggZmlsbD0iIzU1YWNlZSIgZD0iTTY4LjgxMiwxNS4xNDFjLTIuMzQ4LDEuMDM5LTQuODY5LDEuNzQzLTcuNTE5LDIuMDZjMi43MDMtMS42Miw0Ljc3OC00LjE4Nyw1Ljc1Ni03LjI0NGMtMi41MjksMS41LTUuMzMsMi41OTItOC4zMTMsMy4xNzYNCglDNTYuMzQ5LDEwLjU5MSw1Mi45NDgsOSw0OS4xODIsOWMtNy4yMjksMC0xMy4wOTIsNS44NjEtMTMuMDkyLDEzLjA5M2MwLDEuMDI2LDAuMTE4LDIuMDIxLDAuMzM4LDIuOTgxDQoJYy0xMC44ODUtMC41NDgtMjAuNTI4LTUuNzU3LTI2Ljk4Ny0xMy42NzljLTEuMTI2LDEuOTM2LTEuNzcxLDQuMTg0LTEuNzcxLDYuNTgxYzAsNC41NDIsMi4zMTIsOC41NTEsNS44MjQsMTAuODk4DQoJYy0yLjE0Ni0wLjA2OS00LjE2NS0wLjY1Ny01LjkzLTEuNjM4Yy0wLjAwMiwwLjA1NS0wLjAwMiwwLjExLTAuMDAyLDAuMTYyYzAsNi4zNDUsNC41MTMsMTEuNjM4LDEwLjUwNCwxMi44NA0KCWMtMS4xMDEsMC4yOTgtMi4yNTYsMC40NTctMy40NDksMC40NTdjLTAuODQ2LDAtMS42NjctMC4wNzgtMi40NjUtMC4yMzFjMS42NjcsNS4yLDYuNDk5LDguOTg2LDEyLjIzLDkuMDkNCgljLTQuNDgyLDMuNTEyLTEwLjEyOSw1LjYwNi0xNi4yNiw1LjYwNmMtMS4wNTUsMC0yLjA5Ni0wLjA2MS0zLjEyMi0wLjE4NGM1Ljc5NCwzLjcxNywxMi42NzYsNS44ODIsMjAuMDY3LDUuODgyDQoJYzI0LjA4MywwLDM3LjI1MS0xOS45NDksMzcuMjUxLTM3LjI0OWMwLTAuNTY2LTAuMDE0LTEuMTM0LTAuMDM5LTEuNjk0QzY0LjgzOCwyMC4wNjgsNjcuMDU4LDE3Ljc2NSw2OC44MTIsMTUuMTQxeiIvPg0KPC9zdmc+DQo=\") 8px 8px no-repeat;\n  background-size: 1em 1em;\n  font: normal 12px/18px Helvetica, Arial, sans-serif;\n  color: #333;\n  white-space: nowrap; }\n\n.poll-button {\n  margin-bottom: 20px;\n  padding: 20px 60px; }\n\n.btn {\n  white-space: normal;\n  word-wrap: break-word; }\n", ""]);
 
 	// exports
 

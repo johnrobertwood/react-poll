@@ -20,12 +20,9 @@ var AddPoll = React.createClass({
 
 	componentWillMount: function() {
 		this.lock = new Auth0Lock('lfGCmxBWfu6Ibpxhnwgxx6pJ4LTvyKJs', 'woodjohn.auth0.com');
-		var firebaseRef = firebase.database().ref('pollData');
 	},
 
 	componentDidMount: function() {
-
-	  var userRef = firebase.database().ref('users')
 	  AppStore.addChangeListener(this._onChange);
 
   	var idToken = localStorage.getItem('id_token');
@@ -40,7 +37,6 @@ var AddPoll = React.createClass({
   	    this.setState({profile: profile});
   	  }.bind(this));
     }
-
 	},
 
 	componentWillUnmount: function() {
@@ -62,32 +58,12 @@ var AddPoll = React.createClass({
 	handleSubmit: function(e) {
 		e.preventDefault();
 		var title = this.state.title;
-		var parseText = this.state.text.split(',');
-		var choices = parseText.map(function(item) {return [item];});
-		var colors = choices.map(function() {
-			return '#'+'0123456789abcdef'.split('').map(function(v,i,a){
-			  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
-		})
-		var initialData = choices.map(function(item) {return 0;});
-		var pieData = parseText.map(function(item) {
-			var obj = {}
-			obj.label = item;
-			obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
-			  return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
-			obj.value = 1;
-			return obj;
-		})
-		var nickname = this.state.profile.nickname;
-		var nextText = '';
-		var nextTitle = '';
-		var nextChart = this.state.pollData.concat([pieData]);
+		var text = this.state.text;
+		var user = this.state.profile.nickname;
 
-		PollActions.addPoll([pieData, nickname, title]);
-
-		this.setState({text: nextText, title: nextTitle});
+		PollActions.addPoll(title, text, user)
 
 		hashHistory.push(`/users/${this.state.profile.nickname}`);
-		
 	},
 
   render: function() {

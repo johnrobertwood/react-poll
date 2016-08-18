@@ -24,7 +24,7 @@ var MyPollView = React.createClass({
 	getInitialState: function() {
 		return {
 			poll: null,
-			status: true
+			alreadyVoted: false
 		}
 	},
 
@@ -55,20 +55,10 @@ var MyPollView = React.createClass({
 	},
 
 	handleChange: function(e) {
-	  var firebaseRef = firebase.database().ref('pollData');
-	  var pollIndex = e.target.getAttribute('data-index');
-	  var pollKey = this.props.params.key;
-	  var length = this.state.poll[0][0].length;
-	  var dataArr = this.state.poll[0];
-	  var localUser = localStorage.getItem('user_name');
-	  for (var i = 0; i < length; i++) {
-	    if (dataArr[0][i].label === e.target.value) {
-	      this.state.poll[0][0][i].value += 1;
-	      firebaseRef.child(pollKey).update({0: this.state.poll[0][0]});
-	      // firebaseRef.child(pollKey).push({voter: localUser})
-	      AppStore.emitChange();
-	    }
-	  }
+	  var key = this.props.params.key;
+	  var selection = e.target.value;
+	  var user = localStorage.getItem('user_name');
+	  PollActions.addVote(key, selection, user);
 	},
 
 	handleDelete: function(key) {
@@ -97,7 +87,8 @@ var MyPollView = React.createClass({
     	              componentClass="select" 
     	              data-key={this.state.poll['.key']} 
     	              onChange={this.handleChange} 
-    	              defaultValue="default" disabled={this.state.status}>
+    	              defaultValue="default" 
+    	              disabled={this.state.alreadyVoted}>
     	              <option disabled value="default"></option>
     	                {this.state.poll[0][0].map(function(subitem, i) {
     	                  return <option key={i} value={subitem.label}>{subitem.label}</option>}, this)}

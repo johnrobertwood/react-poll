@@ -16,6 +16,8 @@ var showModal = true;
 
 var user = '';
 
+var firebaseRef = firebase.database().ref('pollData');
+
 function logIn() {
   loggedIn = true;
 }
@@ -32,15 +34,33 @@ function resetModal() {
   showModal = true;
 }
 
-function addPoll(poll) {
-  firebase.database().ref('pollData').push(poll, function() {
+function addPoll(title, text, user) {
+
+  var choices = text.split(',').map(function(item) {return [item];});
+  var colors = choices.map(function() {
+    return '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+      return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+  })
+  var initialData = choices.map(function(item) {return 0;});
+  var pieData = text.split(',').map(function(item) {
+    var obj = {}
+    obj.label = item;
+    obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+      return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+    obj.value = 0;
+    return obj;
+  })
+
+  var poll = [pieData, user, title];
+
+  firebaseRef.push(poll, function() {
     AppStore.emitChange();
   });
 }
 
 function getPoll(key) {
   polls = [];
-  firebase.database().ref('pollData').once('value', function(snapshot) {
+  firebaseRef.once('value', function(snapshot) {
     var obj = snapshot.val();
     for (var prop in obj) {
       item = [];
@@ -61,7 +81,7 @@ function getPoll(key) {
 
 function getAllPolls() {
   polls = [];
-  firebase.database().ref('pollData').once('value', function(snapshot) {
+  firebaseRef.once('value', function(snapshot) {
     var obj = snapshot.val();
     for (var prop in obj) {
       item = [];
@@ -79,7 +99,7 @@ function getAllPolls() {
 
 function getUserPolls(user) {
   userPolls = [];
-  firebase.database().ref('pollData').once('value', function(snapshot) {
+  firebaseRef.once('value', function(snapshot) {
     var obj = snapshot.val();
 
     for (var prop in obj) {
@@ -100,7 +120,6 @@ function getUserPolls(user) {
 }
 
 function delPoll(key, userName) {
-  var firebaseRef = firebase.database().ref('pollData');
   firebaseRef.child(key).remove()
   userPolls = userPolls.filter(function(poll) {
     return poll['.key'] !== key;
@@ -111,24 +130,28 @@ function delPoll(key, userName) {
 }
 
 function newOption(key, option) {
-  var firebaseRef = firebase.database().ref('pollData');
-
-  var obj = {}
+  var obj = {};
+  var arr = [];
   obj.label = option;
   obj.color = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
       return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
-  obj.value = 0;
-  var firebaseRef = firebase.database().ref('pollData').child(key);
-  firebaseRef.once('value', function(snap) {
-    var arr = snap.val();
-    arr[0].push(obj);
-    poll[0][0].push(obj)
-    firebaseRef.set(arr, function() {
-      legend = 'newChart';
-      AppStore.emitChange();
-    });
+  obj.value = 1;
+  poll[0][0].push(obj)
+  firebaseRef.child(key).update({0: poll[0][0]}, function() {
+    AppStore.emitChange();
   });
+}
 
+function addVote(key, selection, user) {
+  var length = poll[0][0].length;
+  var dataArr = poll[0];
+  for (var i = 0; i < length; i++) {
+    if (dataArr[0][i].label === selection) {
+      poll[0][0][i].value += 1;
+    }
+  }
+  firebaseRef.child(key).update({0: poll[0][0]});
+  AppStore.emitChange();
 }
 
 var AppStore = assign({}, EventEmitter.prototype, {
@@ -172,7 +195,6 @@ var AppStore = assign({}, EventEmitter.prototype, {
 });
 
 AppDispatcher.register(function(action){
-  var text;
 
   if (action.actionType === "LOG_IN") {
     loggedIn = true;
@@ -185,7 +207,7 @@ AppDispatcher.register(function(action){
   }
 
   if (action.actionType === "ADD_POLL") {
-    addPoll(action.poll);
+    addPoll(action.title, action.text, action.user);
   }
 
   if (action.actionType === "GET_POLL") {
@@ -206,6 +228,10 @@ AppDispatcher.register(function(action){
 
   if (action.actionType === "NEW_OPTION") {
     newOption(action.key, action.option);
+  }
+
+  if (action.actionType === "ADD_VOTE") {
+    addVote(action.key, action.selection, action.user);
   }
   
   return true;

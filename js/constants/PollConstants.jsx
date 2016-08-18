@@ -10,5 +10,6 @@ module.exports = keyMirror({
   GET_ALL_POLLS: null,
   GET_USER_POLLS: null,
   DEL_POLL: null,
-  NEW_OPTION: null
+  NEW_OPTION: null,
+  ADD_VOTE: null
 });

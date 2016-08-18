@@ -24,14 +24,14 @@ var MyPollView = React.createClass({
 
 	getInitialState: function() {
 		return {
-			poll: null
+			poll: null,
+			alreadyVoted: false
 		}
 	},
 
 	componentWillMount: function() {
 		PollActions.getPoll(this.props.params.key);
 		this.setState({showModal: true})
-
 	},
 
 	componentDidMount: function() {
@@ -52,19 +52,10 @@ var MyPollView = React.createClass({
 	},
 
 	handleChange: function(e) {
-	  var firebaseRef = firebase.database().ref('pollData');
-	  var pollIndex = e.target.getAttribute('data-index');
-	  var pollKey = this.props.params.key;
-	  var length = this.state.poll[0][0].length;
-	  var dataArr = this.state.poll[0];
-	  var updatedPoll;
-	  for (var i = 0; i < length; i++) {
-	    if (dataArr[0][i].label === e.target.value) {
-	      this.state.poll[0][0][i].value += 1;
-	      firebaseRef.child(pollKey).update({0: this.state.poll[0][0]});
-	      AppStore.emitChange();
-	    }
-	  }
+		var user = localStorage.getItem('user_name');
+		var key = this.props.params.key;
+		var selection = e.target.value;
+		PollActions.addVote(key, selection, user);
 	},
 
   render: function() {
@@ -86,7 +77,8 @@ var MyPollView = React.createClass({
     	              componentClass="select" 
     	              data-key={this.state.poll['.key']} 
     	              onChange={this.handleChange} 
-    	              defaultValue="default">
+    	              defaultValue="default"
+    	              disabled={this.state.alreadyVoted} >
     	              <option disabled value="default"></option>
     	                {this.state.poll[0][0].map(function(subitem, i) {
     	                  return <option key={i} value={subitem.label}>{subitem.label}</option>}, this)}
@@ -99,8 +91,7 @@ var MyPollView = React.createClass({
     	      </div>
 	    	  </Modal.Body>
 	    	  <Modal.Footer>
-	    	    <Button onClick={this.close} bsStyle="info" block>Close</Button>
-						
+	    	    <Button onClick={this.close} bsStyle="info" block>Close</Button>	
 	    	  </Modal.Footer>
 	    	</Modal>
 	  		</div>

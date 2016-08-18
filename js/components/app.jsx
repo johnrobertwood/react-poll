@@ -36,10 +36,6 @@ var App = React.createClass({
     AppStore.removeChangeListener(this._onChange);
   },
 
-  createLock: function() {
-      this.lock = new Auth0Lock(this.props.clientId, this.props.domain);
-  },
-
   getIdToken: function() {
     // First, check if there is already a JWT in local storage
     var idToken = localStorage.getItem('id_token');
