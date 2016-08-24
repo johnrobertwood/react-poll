@@ -32,14 +32,18 @@ var NewOption = React.createClass({
 			return ( 
 				<div>
 					<Form className="newOptionForm" onSubmit={this.handleSubmit}>
-						<FormControl 
+						<FormControl
 						 type="text" 
 						 placeholder="Write in your own selection" 
 						 value={this.state.text}
 						 onChange={this.handleTextChange} 
-						 disabled={this.props.alreadyVoted} 
+						 disabled={this.props.alreadyVoted}
 						 required />
-						<Button type="submit" disabled={this.props.alreadyVoted}>Submit Write In</Button>
+						<Button 
+						 className="submit-button"
+						 type="submit"
+						 bsStyle="primary"
+						 disabled={this.props.alreadyVoted}>Submit Write In</Button>
 					</Form>
 				</div>
 			) 

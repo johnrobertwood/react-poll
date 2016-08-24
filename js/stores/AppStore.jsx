@@ -1,6 +1,7 @@
 var AppDispatcher = require('../dispatcher/AppDispatcher.jsx');
 var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
+var $ = require('jquery');
 
 var CHANGE_EVENT = 'change';
 
@@ -19,6 +20,8 @@ var user = '';
 var alreadyVoted = false;
 
 var firebaseRef = firebase.database().ref('pollData');
+
+var ip = '';
 
 function logIn() {
   loggedIn = true;
@@ -83,8 +86,18 @@ function getPoll(key, user) {
       });
     }
 
-    AppStore.emitChange();
-    return poll;
+    $.get( "https://api.ipify.org?format=json", function( data ) {
+      ip = data.ip;
+      if (poll[0].voters) {
+        poll[0].voters.forEach(function(voter) {
+          if (voter === ip) {
+            alreadyVoted = true;
+          }
+        });
+      }
+      AppStore.emitChange();
+      return poll;
+    });
   })
 }
 
@@ -148,9 +161,13 @@ function newOption(key, option, user) {
     voters.push(user);
   }
 
+  if (!checkVoters(voters, ip)) {
+    voters.push(ip);
+  }
+
   alreadyVoted = true;
 
-  firebaseRef.child(key).update({data: poll[0].data}, function() {
+  firebaseRef.child(key).update({data: poll[0].data, voters: voters}, function() {
     AppStore.emitChange();
   });
 }
@@ -168,6 +185,10 @@ function addVote(key, selection, user) {
 
   if (!checkVoters(voters, user)) {
     voters.push(user);
+  } 
+
+  if (!checkVoters(voters, ip)) {
+    voters.push(ip);
   }
 
   alreadyVoted = true;
@@ -177,6 +198,7 @@ function addVote(key, selection, user) {
       poll[0].data[i].value += 1;
     }
   }
+    
   firebaseRef.child(key).update({data: poll[0].data, voters: voters});
   AppStore.emitChange();
 }

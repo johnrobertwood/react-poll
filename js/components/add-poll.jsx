@@ -110,7 +110,10 @@ var AddPoll = React.createClass({
 				  				 maxLength="80" 
 				  				 required/>
 								</FormGroup>
-			  				<Button type="submit" bsStyle="primary" block>Add Poll</Button>
+			  				<Button 
+			  				className="submit-button"
+			  				bsStyle="primary" 
+			  				block>Add Poll</Button>
 			  			</form>
 	  				</Col>
 					</Row>

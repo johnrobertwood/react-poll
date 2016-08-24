@@ -27,8 +27,13 @@ var DeleteButton = React.createClass({
 		if (this.state.user_name === this.props.userName) {
 			return ( 
 				<div>
-					<TwitterButton className="twitter-button" url={window.location}>Tweet</TwitterButton>
-					<Button onClick={_this.handleDelete.bind(null, this.props.keyName)} bsStyle="danger" block>Delete</Button>
+					<TwitterButton 
+					 className="twitter-button" 
+					 url={window.location.toString()}>Tweet</TwitterButton>
+					<Button 
+					 onClick={_this.handleDelete.bind(null, this.props.keyName)} 
+					 bsStyle="danger" 
+					 block>Delete</Button>
 				</div>
 			) 
 		} else {

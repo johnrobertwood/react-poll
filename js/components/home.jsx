@@ -38,11 +38,11 @@ var UserPolls = React.createClass({
 	    	<h2>Vote on a Poll or Create Your Own</h2>
 	  		<Grid>
 	  			<Row>
-						<AllPollsSelector 
-						 pollData={this.state.pollData} 
-						 userName={this.props.params.userName} 
-						 loggedIn={true} />
-					</Row>
+					<AllPollsSelector 
+					 pollData={this.state.pollData} 
+					 userName={this.props.params.userName} 
+					 loggedIn={true} />
+				</Row>
 	  		</Grid>
   		</div>
     );	
